@@ -1,0 +1,77 @@
+/* style.css */
+
+/* General body styling */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Login container */
+.login-box {
+    background-color: #ffffff;
+    padding: 25px;
+    width: 320px;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Heading */
+.login-box h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+/* Form labels */
+.login-box label {
+    font-weight: bold;
+    font-size: 14px;
+}
+
+/* Input fields */
+.login-box input {
+    width: 100%;
+    padding: 10px;
+    margin: 6px 0 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+
+/* Submit button */
+.login-box button {
+    width: 100%;
+    padding: 10px;
+    background-color: #1a6210;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    font-size: 15px;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.login-box button:hover {
+    background-color: #144c0c;
+}
+
+/* Error message */
+.login-box .error {
+    background-color: #ffe0e0;
+    color: #a00;
+    padding: 8px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    text-align: center;
+}
+
+/* Footer note */
+.login-box .note {
+    margin-top: 10px;
+    font-size: 12px;
+    text-align: center;
+    color: #555;
+}
