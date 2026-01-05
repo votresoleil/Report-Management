@@ -1,77 +1,162 @@
-/* style.css */
+* {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, sans-serif;
+}
 
-/* General body styling */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f6f8;
+    margin: 0;
     height: 100vh;
+    background: linear-gradient(135deg, #1f8f5f, #34c38f);
     display: flex;
     justify-content: center;
     align-items: center;
 }
 
-/* Login container */
-.login-box {
-    background-color: #ffffff;
-    padding: 25px;
-    width: 320px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+/* Container */
+.auth-container {
+    width: 100%;
+    max-width: 380px;
+    padding: 20px;
 }
 
-/* Heading */
-.login-box h2 {
+/* Card */
+.auth-card {
+    background: #ffffff;
+    border-radius: 22px;
+    padding: 30px 25px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.15);
     text-align: center;
+}
+
+/* Header */
+.auth-header {
+    margin-bottom: 25px;
+}
+
+.auth-header .logo {
+    font-size: 48px;
+    margin-bottom: 10px;
+}
+
+.auth-header h1 {
+    margin: 0;
+    font-size: 22px;
+    color: #1f8f5f;
+}
+
+.auth-header p {
+    font-size: 14px;
+    color: #777;
+}
+
+/* Inputs */
+.input-group {
+    position: relative;
+    margin-bottom: 15px;
+}
+
+.input-group i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: #1f8f5f;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 14px 15px 14px 45px;
+    border-radius: 30px;
+    border: none;
+    background: #eaf7f1;
+    font-size: 14px;
+    outline: none;
+}
+
+/* Button */
+.btn-primary {
+    width: 100%;
+    padding: 14px;
+    margin-top: 10px;
+    border: none;
+    border-radius: 30px;
+    background: linear-gradient(135deg, #1f8f5f, #34c38f);
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+}
+
+/* Error */
+.error {
+    background: #ffe0e0;
+    color: #a30000;
+    padding: 10px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 15px;
+}
+
+/* Note */
+.note {
+    margin-top: 15px;
+    font-size: 12px;
+    color: #888;
+}
+
+/* Floating input container */
+.input-group.floating {
+    position: relative;
     margin-bottom: 20px;
 }
 
-/* Form labels */
-.login-box label {
-    font-weight: bold;
-    font-size: 14px;
-}
-
-/* Input fields */
-.login-box input {
+/* Input */
+.input-group.floating input {
     width: 100%;
-    padding: 10px;
-    margin: 6px 0 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-    box-sizing: border-box;
-}
-
-/* Submit button */
-.login-box button {
-    width: 100%;
-    padding: 10px;
-    background-color: #1a6210;
-    color: #fff;
+    padding: 18px 15px 18px 45px;
+    border-radius: 30px;
     border: none;
-    border-radius: 5px;
-    font-size: 15px;
-    cursor: pointer;
-    transition: background 0.3s;
+    background: #eaf7f1;
+    font-size: 14px;
+    outline: none;
 }
 
-.login-box button:hover {
-    background-color: #144c0c;
+/* Icon */
+.input-group.floating i {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #1f8f5f;
 }
 
-/* Error message */
-.login-box .error {
-    background-color: #ffe0e0;
-    color: #a00;
-    padding: 8px;
-    margin-bottom: 10px;
-    border-radius: 5px;
-    text-align: center;
+/* Label (starts inside input) */
+.input-group.floating label {
+    position: absolute;
+    left: 45px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 14px;
+    color: #7fae9a;
+    pointer-events: none;
+    transition: all 0.25s ease;
+    background: transparent;
 }
 
-/* Footer note */
-.login-box .note {
-    margin-top: 10px;
-    font-size: 12px;
-    text-align: center;
-    color: #555;
+/* Float UP when typing or focused */
+.input-group.floating input:focus + label,
+.input-group.floating input:valid + label {
+    top: 6px;
+    font-size: 11px;
+    color: #1f8f5f;
 }
+.input-group.floating input:focus {
+    box-shadow: 0 0 0 2px rgba(52, 195, 143, 0.25);
+}
+
+

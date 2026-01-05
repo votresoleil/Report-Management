@@ -25,21 +25,46 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Report Management</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <div class="login-box">
-        <h2>Login</h2>
-        <?php if (isset($error)) echo "<div class='error'>$error</div>"; ?>
-        <form method="post" action="">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+    <body>
+    <div class="auth-container">
+        <div class="auth-card">
 
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+            <!-- Logo / Header -->
+            <div class="auth-header">
+                <div class="logo">🌿</div>
+                <h1>Welcome Back</h1>
+                <p>Sign in to your account</p>
+            </div>
 
-            <button type="submit">Login</button>
-        </form>
-        <div class="note">For testing purposes only.</div>
+            <!-- Error -->
+            <?php if (isset($error)) echo "<div class='error'>$error</div>"; ?>
+
+            <!-- Login Form -->
+            <form method="post">
+                <div class="input-group floating">
+                <input type="text" name="username" required>
+                <label>Username</label>
+                <i class="fas fa-user"></i>
+            </div>
+
+            <div class="input-group floating">
+                <input type="password" name="password" required>
+                <label>Password</label>
+                <i class="fas fa-lock"></i>
+            </div>
+
+                <button type="submit" class="btn-primary">SIGN IN</button>
+            </form>
+
+            <div class="note">
+                For testing purposes only.
+            </div>
+
+        </div>
     </div>
 </body>
+
 </html>
