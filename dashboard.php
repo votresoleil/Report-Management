@@ -14,52 +14,89 @@ $stmt = $pdo->prepare("
 $stmt->execute(["%$search%"]);
 $reports = $stmt->fetchAll();
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Dashboard</title>
+
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
 
-<h1>Dashboard</h1>
-<p>Welcome, <?= htmlspecialchars($_SESSION['name']) ?>!</p>
+<!-- Header -->
+<header class="dash-header">
+    <h1>Dashboard</h1>
+    <span class="user">
+        👋 <?= htmlspecialchars($_SESSION['name']) ?>
+    </span>
+</header>
 
-<form method="GET" action="dashboard.php">
-    <input type="text" name="search" placeholder="Search reports"
-           value="<?= htmlspecialchars($search) ?>">
-    <button type="submit">Search</button>
-</form>
+<!-- Main Container -->
+<div class="dash-container">
 
-<hr>
+    <!-- Search -->
+    <form method="GET" action="dashboard.php" class="search-box">
+        <i class="fas fa-search"></i>
+        <input type="text"
+               name="search"
+               placeholder="Search reports..."
+               value="<?= htmlspecialchars($search) ?>">
+    </form>
 
-<?php
-$current = '';
+    <!-- Reports -->
+    <div class="reports">
 
-foreach ($reports as $r):
-    $group = date(
-        "F Y",
-        strtotime($r['report_year'] . '-' . $r['report_month'] . '-01')
-    );
+        <?php if (empty($reports)): ?>
+            <p class="empty-state">No reports found.</p>
+        <?php else: ?>
 
-    if ($group !== $current):
-        echo "<h3>$group</h3>";
-        $current = $group;
-    endif;
-?>
-    <div>
-        📄 <?= htmlspecialchars($r['report_title']) ?>
-        <a href="<?= htmlspecialchars($r['local_path']) ?>" target="_blank">View</a>
+            <?php
+            $current = '';
 
-        <?php if (isAdmin()): ?>
-            | <a href="delete_report.php?id=<?= $r['report_id'] ?>"
-                 onclick="return confirm('Are you sure you want to delete this report?')">
-                 Delete
-              </a>
+            foreach ($reports as $r):
+                $group = date(
+                    "F Y",
+                    strtotime($r['report_year'] . '-' . $r['report_month'] . '-01')
+                );
+
+                if ($group !== $current):
+                    echo "<h3 class='group-title'>$group</h3>";
+                    $current = $group;
+                endif;
+            ?>
+
+            <div class="report-card">
+                <div class="report-info">
+                    <i class="fas fa-file-alt"></i>
+                    <span><?= htmlspecialchars($r['report_title']) ?></span>
+                </div>
+
+                <div class="report-actions">
+                    <a href="<?= htmlspecialchars($r['local_path']) ?>" target="_blank"
+                       title="View report">
+                        <i class="fas fa-eye"></i>
+                    </a>
+
+                    <?php if (isAdmin()): ?>
+                        <a href="delete_report.php?id=<?= $r['report_id'] ?>"
+                           class="danger"
+                           title="Delete report"
+                           onclick="return confirm('Are you sure you want to delete this report?')">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                    <?php endif; ?>
+                </div>
+            </div>
+
+            <?php endforeach; ?>
+
         <?php endif; ?>
+
     </div>
-<?php endforeach; ?>
+</div>
 
 </body>
 </html>

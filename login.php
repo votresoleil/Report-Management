@@ -24,27 +24,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - Report Management</title>
+
     <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
-<body>
-    <body>
-    <div class="auth-container">
-        <div class="auth-card">
 
-            <!-- Logo / Header -->
-            <div class="auth-header">
-                <div class="logo">🌿</div>
-                <h1>Welcome Back</h1>
-                <p>Sign in to your account</p>
-            </div>
+<body class="auth-page">
 
-            <!-- Error -->
-            <?php if (isset($error)) echo "<div class='error'>$error</div>"; ?>
+<div class="auth-container">
+    <div class="auth-card">
 
-            <!-- Login Form -->
-            <form method="post">
-                <div class="input-group floating">
+        <div class="auth-header">
+
+        <img src="img/NEECO_banner.png" alt="NEECO Logo" class="app-logo">
+
+            <h1>Welcome Back</h1>
+            <p>Sign in to your account</p>
+        </div>
+
+       
+        <?php if (isset($error)): ?>
+            <div class="error"><?= htmlspecialchars($error) ?></div>
+        <?php endif; ?>
+
+        <!-- Login Form -->
+        <form method="post">
+
+            <div class="input-group floating">
                 <input type="text" name="username" required>
                 <label>Username</label>
                 <i class="fas fa-user"></i>
@@ -56,15 +63,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fas fa-lock"></i>
             </div>
 
-                <button type="submit" class="btn-primary">SIGN IN</button>
-            </form>
+            <button type="submit" class="btn-primary">SIGN IN</button>
+        </form>
 
-            <div class="note">
-                For testing purposes only.
-            </div>
+        <div class="note">
+            Admin credentials - Username: admin | Password: admin123
+            Assistant credentials - Username: assistant | Password: assist123
+
+            For testing purposes only.
 
         </div>
-    </div>
-</body>
 
+    </div>
+</div>
+
+</body>
 </html>
