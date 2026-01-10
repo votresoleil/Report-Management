@@ -39,7 +39,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <img src="img/NEECO_banner.png" alt="NEECO Logo" class="app-logo">
 
-            <h1>Welcome Back</h1>
+            <h1>Welcome Back!</h1>
             <p>Sign in to your account</p>
         </div>
 
@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="note">
             Admin credentials - Username: admin | Password: admin123
             Assistant credentials - Username: assistant | Password: assist123
-
+            <br>
             For testing purposes only.
 
         </div>
