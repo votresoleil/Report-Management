@@ -8,14 +8,13 @@ $search = $_GET['search'] ?? '';
 $data = [];
 
 if ($view === 'main') {
-    // Total uploaded this month
+
     $currentMonth = date('m');
     $currentYear = date('Y');
     $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM reports WHERE report_month = ? AND report_year = ? AND status = 'active'");
     $stmt->execute([$currentMonth, $currentYear]);
     $data['total_this_month'] = $stmt->fetch()['total'];
 
-    // Recent reports
     $stmt = $pdo->prepare("
         SELECT r.*, u.full_name
         FROM reports r
@@ -81,7 +80,7 @@ if ($view === 'main') {
 </head>
 <body>
 
-<!-- Header -->
+
 <header class="dash-header">
     <div class="header-left">
         <img src="img/NEECO_banner.png" alt="Company Logo" class="app-logo">
@@ -96,9 +95,8 @@ if ($view === 'main') {
     </div>
 </header>
 
-<!-- Main Layout -->
 <div class="main-layout">
-    <!-- Sidebar -->
+    
     <aside class="sidebar">
         <div>
             <ul>
@@ -112,7 +110,7 @@ if ($view === 'main') {
         <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
     </aside>
 
-    <!-- Logout Modal -->
+   
     <div id="logoutModal">
         <div class="modal-box">
             <h2>Confirm Logout</h2>
@@ -126,7 +124,7 @@ if ($view === 'main') {
         </div>
     </div>
 
-    <!-- Main Content -->
+
     <main class="main-content">
         <?php if ($view === 'main'): ?>
             <div class="main-header">
