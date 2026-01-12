@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $log->execute([$_SESSION['user_id'], 'ADD_ACTIVITY', 'Added activity: ' . $_POST['title']]);
 
     $_SESSION['activity_added'] = true;
-    $_SESSION['selected_date'] = $_POST['deadline'];
+    $_SESSION['selected_date'] = $_POST['start_date'];
     header('Location: dashboard.php');
     exit;
 }

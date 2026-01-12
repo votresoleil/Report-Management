@@ -28,10 +28,6 @@ $stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? ORDER BY start
 $stmt->execute([$_SESSION['user_id']]);
 $activities = $stmt->fetchAll();
 
-if (isset($_SESSION['activity_added'])) {
-    unset($_SESSION['activity_added']);
-}
-
 $selected_date = null;
 if (isset($_SESSION['selected_date'])) {
     $selected_date = $_SESSION['selected_date'];
@@ -70,6 +66,11 @@ foreach ($activitiesByDate as $date => $acts) {
     } else {
         $dateStatus[$date] = 'red';
     }
+}
+
+$show_activity_modal = isset($_SESSION['activity_added']);
+if ($show_activity_modal) {
+    unset($_SESSION['activity_added']);
 }
 
 // Calendar data
@@ -227,6 +228,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
         </div>
         <div class="modal-content">
             <form method="POST" action="add_activity.php">
+                <input type="hidden" name="start_date" id="start_date">
                 <input type="text" name="title" placeholder="Name of Activity" required>
                 <textarea name="description" placeholder="Description"></textarea>
                 <input type="date" name="deadline" required>
@@ -236,7 +238,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
     </div>
 </div>
 
-<div id="activitySuccessModal" class="<?= isset($_SESSION['activity_added']) ? 'active' : '' ?>">
+<div id="activitySuccessModal" class="<?= $show_activity_modal ? 'active' : '' ?>">
     <div class="modal-box">
         <h2>Success!</h2>
         <p>Activity added successfully to the calendar!</p>
@@ -246,6 +248,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
 
 <script>
 const activities = <?= json_encode($activities) ?>;
+let selectedDate = null;
 
 function selectDate(date, element) {
     // Remove selected class from all days
@@ -253,6 +256,7 @@ function selectDate(date, element) {
     // Add selected class to clicked day
     element.classList.add('selected');
 
+    selectedDate = date;
     document.getElementById('activity-date').textContent = 'Activities for ' + new Date(date).toDateString();
     const list = document.getElementById('activity-list');
     list.innerHTML = '';
@@ -290,7 +294,12 @@ uploadSuccessModal.addEventListener('click', (e) => {
 });
 
 addActivityBtn.addEventListener('click', () => {
-    addActivityModal.classList.add('active');
+    if (selectedDate) {
+        document.getElementById('start_date').value = selectedDate;
+        addActivityModal.classList.add('active');
+    } else {
+        alert('Please select a date first.');
+    }
 });
 
 closeAddActivityModal.addEventListener('click', () => {
