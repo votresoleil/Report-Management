@@ -42,7 +42,6 @@ $activities = $stmt->fetchAll();
                     <input type="text" name="title" placeholder="Title" required>
                     <textarea name="description" placeholder="Description"></textarea>
                     <input type="date" name="start_date" required>
-                    <input type="date" name="deadline" required>
                     <button type="submit">Add</button>
                 </form>
             </div>

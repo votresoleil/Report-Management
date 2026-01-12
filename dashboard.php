@@ -231,7 +231,6 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
                 <input type="hidden" name="start_date" id="start_date">
                 <input type="text" name="title" placeholder="Name of Activity" required>
                 <textarea name="description" placeholder="Description"></textarea>
-                <input type="date" name="deadline" required>
                 <button type="submit" class="btn-primary">Add</button>
             </form>
         </div>
@@ -277,7 +276,7 @@ function selectDate(date, element) {
             const checkIcon = act.status !== 'completed' ? `<a href="update_activity.php?id=${act.id}&status=completed" class="check-icon"><i class="fas fa-check-circle"></i></a>` : '';
             const div = document.createElement('div');
             div.className = 'activity-item';
-            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p>${act.description}</p><p>Deadline: ${act.deadline}</p></div>${checkIcon}`;
+            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p>${act.description}</p></div>${checkIcon}`;
             list.appendChild(div);
         });
     }
@@ -337,8 +336,17 @@ closeSelectDateModal.addEventListener('click', () => {
 });
 
 selectDateModal.addEventListener('click', (e) => {
-    if(e.target === selectDateModal){
-        selectDateModal.classList.remove('active');
+   if(e.target === selectDateModal){
+       selectDateModal.classList.remove('active');
+   }
+});
+
+document.querySelector('.calendar-section').addEventListener('click', function(e) {
+    if (!e.target.closest('.day')) {
+        document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
+        selectedDate = null;
+        document.getElementById('activity-date').textContent = 'Select a date';
+        document.getElementById('activity-list').innerHTML = '<p>Click on a date to view or add activities.</p>';
     }
 });
 
