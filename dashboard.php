@@ -26,18 +26,6 @@ if ($view === 'main') {
     $stmt->execute();
     $data['recent_reports'] = $stmt->fetchAll();
 
-} elseif ($view === 'folders') {
-    $stmt = $pdo->prepare("
-        SELECT r.*, u.full_name
-        FROM reports r
-        JOIN users u ON r.uploaded_by = u.user_id
-        WHERE r.status = 'active' AND r.report_title LIKE ?
-        ORDER BY r.report_year DESC, r.report_month DESC
-    ");
-    $stmt->execute(["%$search%"]);
-    $reports = $stmt->fetchAll();
-    $data['reports'] = $reports;
-
 } elseif ($view === 'archives') {
     $stmt = $pdo->prepare("
         SELECT r.*, u.full_name
@@ -93,7 +81,7 @@ if ($view === 'main') {
             <!-- <h1>Report & Activity Management System</h1> -->
             <ul>
                 <li><a href="?view=main" class="<?= $view === 'main' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a></li>
-                <li><a href="?view=folders" class="<?= $view === 'folders' ? 'active' : '' ?>"><i class="fas fa-folder"></i> Report Folders</a></li>
+                <li><a href="report_folders.php"><i class="fas fa-folder"></i> Report Folders</a></li>
                 <li><a href="?view=calendar" class="<?= $view === 'calendar' ? 'active' : '' ?>"><i class="fas fa-calendar"></i> Activity Calendar</a></li>
                 <li><a href="?view=archives" class="<?= $view === 'archives' ? 'active' : '' ?>"><i class="fas fa-archive"></i> Archives</a></li>
                 <li><a href="?view=logs" class="<?= $view === 'logs' ? 'active' : '' ?>"><i class="fas fa-history"></i> Activity Log</a></li>
@@ -183,8 +171,8 @@ if ($view === 'main') {
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
-        <?php elseif ($view === 'folders' || $view === 'archives'): ?>
-            <h2><?= $view === 'folders' ? 'Report Folders' : 'Archives' ?></h2>
+        <?php elseif ($view === 'archives'): ?>
+            <h2>Archives</h2>
             <div class="reports">
                 <?php if (empty($data['reports'])): ?>
                     <p class="empty-state">No reports found.</p>
@@ -207,14 +195,6 @@ if ($view === 'main') {
                             <a href="<?= htmlspecialchars($r['local_path']) ?>" target="_blank" title="View">
                                 <i class="fas fa-eye"></i>
                             </a>
-                            <?php if ($view === 'folders' && isAdmin()): ?>
-                                <a href="archive_report.php?id=<?= $r['report_id'] ?>" title="Archive">
-                                    <i class="fas fa-archive"></i>
-                                </a>
-                                <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Delete?')">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>

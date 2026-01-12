@@ -518,6 +518,48 @@ body {
     text-decoration: underline;
 }
 
+/* Folders */
+.folders-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+}
+
+.folder-card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.folder-card:hover {
+    transform: translateY(-5px);
+}
+
+.folder-card a {
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+
+.folder-card i {
+    font-size: 48px;
+    color: #1f8f5f;
+    margin-bottom: 10px;
+}
+
+.folder-card h3 {
+    margin: 10px 0;
+    color: #023020;
+}
+
+.folder-card p {
+    margin: 0;
+    color: #777;
+}
+
 /* Logout Modal */
 #logoutModal {
     position: fixed;
