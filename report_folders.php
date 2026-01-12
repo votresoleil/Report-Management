@@ -44,6 +44,7 @@ if ($month) {
 
     <main class="main-content">
         <div class="main-top-bar">
+            <h2>Report Folders</h2>
             <div class="search-center">
                 <form method="GET" action="report_folders.php" class="search-box">
                     <input type="hidden" name="month" value="<?= $month ?>">
@@ -88,7 +89,6 @@ if ($month) {
                 <?php endif; ?>
             </div>
         <?php else: ?>
-            <h2>Report Folders</h2>
             <div class="folders-container">
                 <?php for ($m = 1; $m <= 12; $m++): ?>
                     <div class="folder-card">

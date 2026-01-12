@@ -710,7 +710,7 @@ body {
 .search-box input {
     border: none;
     outline: none;
-    width: 300px;
+    width: 100%;
     font-size: 16px;
     background: transparent;
 }
