@@ -100,11 +100,7 @@ if ($view === 'main') {
             </ul>
         </div>
         <div class="sidebar-footer">
-            <div class="sidebar-icons">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
-            </div>
+           
             <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </aside>
