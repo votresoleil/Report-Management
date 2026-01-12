@@ -200,8 +200,8 @@ body {
     margin-bottom: 10px;
 }
 
-.sidebar .sidebar-header .app-logo {
-    width: 50px;
+.sidebar-logo {
+    width: 40px;
     height: auto;
 }
 
@@ -402,8 +402,15 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
 }
 
-.recent-reports h3 {
-    margin-top: 0;
+.panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.panel-header h3 {
+    margin: 0;
     color: #333;
 }
 
@@ -630,6 +637,78 @@ body {
 
 #logoutModal .modal-box .actions form button:hover {
     background: #0a4a2a;
+}
+
+/* Month Modal */
+#monthModal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.5);
+    visibility: hidden;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+#monthModal.active {
+    visibility: visible;
+    opacity: 1;
+}
+
+#monthModal .modal-box.large {
+    background: white;
+    color: black;
+    border-radius: 12px;
+    padding: 24px;
+    width: 80%;
+    max-width: 800px;
+    max-height: 80vh;
+    overflow-y: auto;
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.modal-header h2 {
+    margin: 0;
+    color: #333;
+    flex: 1;
+}
+
+.close-btn {
+    background: none;
+    border: none;
+    font-size: 24px;
+    cursor: pointer;
+    color: #333;
+    padding: 0;
+    margin-left: 10px;
+}
+
+.modal-content {
+    margin-bottom: 20px;
+}
+
+.close-modal {
+    background: #1f8f5f;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    display: block;
+    margin: 0 auto;
+}
+
+.close-modal:hover {
+    background: #34c38f;
 }
 
 /* Header */

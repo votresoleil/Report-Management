@@ -5,7 +5,7 @@ if (!isset($active_view)) $active_view = 'main';
 <aside class="sidebar">
     <div>
         <div class="sidebar-header">
-            <img src="img/NEECO_banner.png" alt="Company Logo" class="app-logo">
+            <img src="img/NEECO_banner.png" alt="Company Logo" class="sidebar-logo">
             <span class="role-text"><?= isset($_SESSION['role']) && $_SESSION['role'] == 'admin' ? 'Administrator' : 'Assistant' ?></span>
         </div>
         <!-- <h1>Report & Activity Management System</h1> -->

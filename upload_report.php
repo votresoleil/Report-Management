@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'Uploaded report: ' . $_POST['title']
     ]);
 
-    echo "File uploaded successfully!";
-    echo "<br><a href='dashboard.php'>Go back to Dashboard</a>";
+    header("Location: dashboard.php?uploaded=1");
+    exit;
 }
 ?>
