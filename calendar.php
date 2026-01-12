@@ -46,26 +46,6 @@ $activities = $stmt->fetchAll();
                     <button type="submit">Add</button>
                 </form>
             </div>
-            <div class="calendar-view">
-                <h3>Upcoming Activities</h3>
-                <?php if (empty($activities)): ?>
-                    <p>No activities.</p>
-                <?php else: ?>
-                    <?php foreach ($activities as $act): ?>
-                        <div class="activity-item">
-                            <div class="activity-content">
-                                <span class="status-dot <?= $act['status'] === 'completed' ? 'green' : ($act['status'] === 'in-progress' ? 'yellow' : 'red') ?>"></span>
-                                <h4><?= htmlspecialchars($act['title']) ?></h4>
-                                <p><?= htmlspecialchars($act['description']) ?></p>
-                                <p>Start: <?= $act['start_date'] ?> | Deadline: <?= $act['deadline'] ?></p>
-                            </div>
-                            <?php if ($act['status'] !== 'completed'): ?>
-                                <a href="update_activity.php?id=<?= $act['id'] ?>&status=completed" class="check-icon"><i class="fas fa-check-circle"></i></a>
-                            <?php endif; ?>
-                        </div>
-                    <?php endforeach; ?>
-                <?php endif; ?>
-            </div>
         </div>
         </div>
     </main>
