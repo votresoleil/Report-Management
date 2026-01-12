@@ -43,7 +43,7 @@ if ($month) {
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="main-top-bar">
+        <div class="header-section">
             <h2>Report Folders</h2>
             <div class="icons-right">
                 <i class="fas fa-users"></i>
@@ -51,7 +51,8 @@ if ($month) {
                 <i class="fas fa-user"></i>
             </div>
         </div>
-        <div class="folders-container">
+        <div class="content-section">
+            <div class="folders-container">
             <?php for ($m = 1; $m <= 12; $m++): ?>
                 <div class="folder-card">
                     <a href="?month=<?= $m ?>">

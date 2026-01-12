@@ -22,6 +22,69 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute(["%$search%"]);
 $data['recent_reports'] = $stmt->fetchAll();
+
+// Activities
+$stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? ORDER BY start_date");
+$stmt->execute([$_SESSION['user_id']]);
+$activities = $stmt->fetchAll();
+
+if (isset($_SESSION['activity_added'])) {
+    unset($_SESSION['activity_added']);
+}
+
+$selected_date = null;
+if (isset($_SESSION['selected_date'])) {
+    $selected_date = $_SESSION['selected_date'];
+    unset($_SESSION['selected_date']);
+}
+
+// Group activities by date
+$activitiesByDate = [];
+$dateStatus = [];
+foreach ($activities as $act) {
+    $date = $act['start_date'];
+    if (!isset($activitiesByDate[$date])) {
+        $activitiesByDate[$date] = [];
+    }
+    $activitiesByDate[$date][] = $act;
+}
+
+// Determine status for each date
+foreach ($activitiesByDate as $date => $acts) {
+    $hasCompleted = false;
+    $hasInProgress = false;
+    $hasUndone = false;
+    foreach ($acts as $act) {
+        if ($act['status'] === 'completed') {
+            $hasCompleted = true;
+        } elseif ($act['status'] === 'in-progress') {
+            $hasInProgress = true;
+        } else {
+            $hasUndone = true;
+        }
+    }
+    if ($hasCompleted && !$hasInProgress && !$hasUndone) {
+        $dateStatus[$date] = 'green';
+    } elseif ($hasInProgress) {
+        $dateStatus[$date] = 'yellow';
+    } else {
+        $dateStatus[$date] = 'red';
+    }
+}
+
+// Calendar data
+$calendarMonth = date('m');
+$calendarYear = date('Y');
+$firstDay = mktime(0,0,0,$calendarMonth,1,$calendarYear);
+$daysInMonth = date('t', $firstDay);
+$startDay = date('w', $firstDay);
+$calendar = [];
+for ($i = 0; $i < $startDay; $i++) {
+    $calendar[] = '';
+}
+for ($day = 1; $day <= $daysInMonth; $day++) {
+    $calendar[] = $day;
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,7 +104,7 @@ $data['recent_reports'] = $stmt->fetchAll();
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="main-top-bar">
+        <div class="header-section">
             <h2>Main Dashboard</h2>
             <div class="icons-right">
                 <i class="fas fa-users"></i>
@@ -50,11 +113,55 @@ $data['recent_reports'] = $stmt->fetchAll();
             </div>
         </div>
 
-        <div class="stats">
-            <div class="stat-card">
-                <h3>Total Uploaded This Month</h3>
-                <p><?= $data['total_this_month'] ?></p>
+        <div class="calendar-section">
+            <div class="calendar">
+            <div class="calendar-view">
+                <h3><?= date('F Y') ?></h3>
+                <table class="calendar-table">
+                    <thead>
+                        <tr>
+                            <th>Sun</th>
+                            <th>Mon</th>
+                            <th>Tue</th>
+                            <th>Wed</th>
+                            <th>Thu</th>
+                            <th>Fri</th>
+                            <th>Sat</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $weeks = array_chunk($calendar, 7);
+                        foreach ($weeks as $week):
+                        ?>
+                        <tr>
+                            <?php foreach ($week as $day): ?>
+                            <?php if ($day): ?>
+                                <td class="day <?= $day == date('j') ? 'today' : '' ?>" data-date="<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>" onclick="selectDate('<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>', this)">
+                                    <?= $day ?>
+                                    <?php if (isset($dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)])): ?>
+                                        <span class="status-dot <?= $dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)] ?>"></span>
+                                    <?php endif; ?>
+                                </td>
+                            <?php else: ?>
+                                <td></td>
+                            <?php endif; ?>
+                            <?php endforeach; ?>
+                        </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
             </div>
+            <div class="upcoming-activities">
+                <div class="activity-header">
+                    <h3 id="activity-date">Select a date</h3>
+                    <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
+                </div>
+                <div id="activity-list">
+                    <p>Click on a date to view activities.</p>
+                </div>
+            </div>
+        </div>
         </div>
         <div class="upload-section">
             <h3>Quick Upload</h3>
@@ -112,9 +219,65 @@ $data['recent_reports'] = $stmt->fetchAll();
     </div>
 </div>
 
+<div id="addActivityModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Add Activity</h2>
+            <button class="close-btn" id="closeAddActivityModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form method="POST" action="add_activity.php">
+                <input type="text" name="title" placeholder="Name of Activity" required>
+                <textarea name="description" placeholder="Description"></textarea>
+                <input type="date" name="deadline" required>
+                <button type="submit" class="btn-primary">Add</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="activitySuccessModal" class="<?= isset($_SESSION['activity_added']) ? 'active' : '' ?>">
+    <div class="modal-box">
+        <h2>Success!</h2>
+        <p>Activity added successfully to the calendar!</p>
+        <button class="btn-primary" id="closeActivityModal">OK</button>
+    </div>
+</div>
+
 <script>
+const activities = <?= json_encode($activities) ?>;
+
+function selectDate(date, element) {
+    // Remove selected class from all days
+    document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
+    // Add selected class to clicked day
+    element.classList.add('selected');
+
+    document.getElementById('activity-date').textContent = 'Activities for ' + new Date(date).toDateString();
+    const list = document.getElementById('activity-list');
+    list.innerHTML = '';
+    const dayActivities = activities.filter(a => a.start_date === date);
+    if (dayActivities.length === 0) {
+        list.innerHTML = '<p>No activities for this date.</p>';
+    } else {
+        dayActivities.forEach(act => {
+            const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
+            const checkIcon = act.status !== 'completed' ? `<a href="update_activity.php?id=${act.id}&status=completed" class="check-icon"><i class="fas fa-check-circle"></i></a>` : '';
+            const div = document.createElement('div');
+            div.className = 'activity-item';
+            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p>${act.description}</p><p>Deadline: ${act.deadline}</p></div>${checkIcon}`;
+            list.appendChild(div);
+        });
+    }
+}
+
 const uploadSuccessModal = document.getElementById('uploadSuccessModal');
 const closeUploadModal = document.getElementById('closeUploadModal');
+const addActivityModal = document.getElementById('addActivityModal');
+const addActivityBtn = document.getElementById('addActivityBtn');
+const closeAddActivityModal = document.getElementById('closeAddActivityModal');
+const activitySuccessModal = document.getElementById('activitySuccessModal');
+const closeActivityModal = document.getElementById('closeActivityModal');
 
 closeUploadModal.addEventListener('click', () => {
     uploadSuccessModal.classList.remove('active');
@@ -125,6 +288,34 @@ uploadSuccessModal.addEventListener('click', (e) => {
         uploadSuccessModal.classList.remove('active');
     }
 });
+
+addActivityBtn.addEventListener('click', () => {
+    addActivityModal.classList.add('active');
+});
+
+closeAddActivityModal.addEventListener('click', () => {
+    addActivityModal.classList.remove('active');
+});
+
+addActivityModal.addEventListener('click', (e) => {
+    if(e.target === addActivityModal){
+        addActivityModal.classList.remove('active');
+    }
+});
+
+closeActivityModal.addEventListener('click', () => {
+    activitySuccessModal.classList.remove('active');
+});
+
+activitySuccessModal.addEventListener('click', (e) => {
+    if(e.target === activitySuccessModal){
+        activitySuccessModal.classList.remove('active');
+    }
+});
+
+<?php if ($selected_date): ?>
+selectDate('<?= $selected_date ?>', document.querySelector('[data-date="<?= $selected_date ?>"]'));
+<?php endif; ?>
 </script>
 
 </body>

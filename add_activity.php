@@ -16,7 +16,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
     $log->execute([$_SESSION['user_id'], 'ADD_ACTIVITY', 'Added activity: ' . $_POST['title']]);
 
-    header('Location: dashboard.php?view=calendar');
+    $_SESSION['activity_added'] = true;
+    $_SESSION['selected_date'] = $_POST['deadline'];
+    header('Location: dashboard.php');
     exit;
 }
 ?>

@@ -33,8 +33,16 @@ $reports = $stmt->fetchAll();
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <h2>Archives</h2>
-        <div class="reports">
+        <div class="header-section">
+            <h2>Archives</h2>
+            <div class="icons-right">
+                <i class="fas fa-users"></i>
+                <i class="fas fa-bell"></i>
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        <div class="content-section">
+            <div class="reports">
             <?php if (empty($reports)): ?>
                 <p class="empty-state">No reports found.</p>
             <?php else: ?>
@@ -60,6 +68,7 @@ $reports = $stmt->fetchAll();
                 </div>
                 <?php endforeach; ?>
             <?php endif; ?>
+        </div>
         </div>
     </main>
 </div>

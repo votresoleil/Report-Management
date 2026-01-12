@@ -26,8 +26,16 @@ $activities = $stmt->fetchAll();
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <h2>Activity Calendar</h2>
-        <div class="calendar">
+        <div class="header-section">
+            <h2>Activity Calendar</h2>
+            <div class="icons-right">
+                <i class="fas fa-users"></i>
+                <i class="fas fa-bell"></i>
+                <i class="fas fa-user"></i>
+            </div>
+        </div>
+        <div class="content-section">
+            <div class="calendar">
             <div class="add-activity">
                 <h3>Add Activity</h3>
                 <form method="POST" action="add_activity.php">
@@ -45,16 +53,20 @@ $activities = $stmt->fetchAll();
                 <?php else: ?>
                     <?php foreach ($activities as $act): ?>
                         <div class="activity-item">
-                            <h4><?= htmlspecialchars($act['title']) ?></h4>
-                            <p><?= htmlspecialchars($act['description']) ?></p>
-                            <p>Start: <?= $act['start_date'] ?> | Deadline: <?= $act['deadline'] ?> | Status: <?= $act['status'] ?></p>
+                            <div class="activity-content">
+                                <span class="status-dot <?= $act['status'] === 'completed' ? 'green' : ($act['status'] === 'in-progress' ? 'yellow' : 'red') ?>"></span>
+                                <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                <p><?= htmlspecialchars($act['description']) ?></p>
+                                <p>Start: <?= $act['start_date'] ?> | Deadline: <?= $act['deadline'] ?></p>
+                            </div>
                             <?php if ($act['status'] !== 'completed'): ?>
-                                <a href="update_activity.php?id=<?= $act['id'] ?>&status=completed">Mark Complete</a>
+                                <a href="update_activity.php?id=<?= $act['id'] ?>&status=completed" class="check-icon"><i class="fas fa-check-circle"></i></a>
                             <?php endif; ?>
                         </div>
                     <?php endforeach; ?>
                 <?php endif; ?>
             </div>
+        </div>
         </div>
     </main>
 </div>
