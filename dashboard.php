@@ -159,7 +159,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
                     <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
                 </div>
                 <div id="activity-list">
-                    <p>Click on a date to view activities.</p>
+                    <p>Click on a date to view or add activities.</p>
                 </div>
             </div>
         </div>
@@ -246,6 +246,14 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
     </div>
 </div>
 
+<div id="selectDateModal">
+    <div class="modal-box">
+        <h2>Notice</h2>
+        <p>Please select a date first.</p>
+        <button class="btn-primary" id="closeSelectDateModal">OK</button>
+    </div>
+</div>
+
 <script>
 const activities = <?= json_encode($activities) ?>;
 let selectedDate = null;
@@ -282,6 +290,8 @@ const addActivityBtn = document.getElementById('addActivityBtn');
 const closeAddActivityModal = document.getElementById('closeAddActivityModal');
 const activitySuccessModal = document.getElementById('activitySuccessModal');
 const closeActivityModal = document.getElementById('closeActivityModal');
+const selectDateModal = document.getElementById('selectDateModal');
+const closeSelectDateModal = document.getElementById('closeSelectDateModal');
 
 closeUploadModal.addEventListener('click', () => {
     uploadSuccessModal.classList.remove('active');
@@ -298,7 +308,7 @@ addActivityBtn.addEventListener('click', () => {
         document.getElementById('start_date').value = selectedDate;
         addActivityModal.classList.add('active');
     } else {
-        alert('Please select a date first.');
+        selectDateModal.classList.add('active');
     }
 });
 
@@ -319,6 +329,16 @@ closeActivityModal.addEventListener('click', () => {
 activitySuccessModal.addEventListener('click', (e) => {
     if(e.target === activitySuccessModal){
         activitySuccessModal.classList.remove('active');
+    }
+});
+
+closeSelectDateModal.addEventListener('click', () => {
+    selectDateModal.classList.remove('active');
+});
+
+selectDateModal.addEventListener('click', (e) => {
+    if(e.target === selectDateModal){
+        selectDateModal.classList.remove('active');
     }
 });
 

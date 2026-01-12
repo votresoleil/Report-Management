@@ -867,28 +867,28 @@ body {
 /* Modals */
 #uploadSuccessModal,
 #addActivityModal,
-#activitySuccessModal {
+#activitySuccessModal,
+#selectDateModal {
     position: fixed;
     inset: 0;
-    display: flex;
+    display: none;
     align-items: center;
     justify-content: center;
     background: rgba(0,0,0,0.5);
-    visibility: hidden;
-    opacity: 0;
     transition: opacity 0.3s ease;
     z-index: 1000;
 }
 
 #uploadSuccessModal.active,
 #addActivityModal.active,
-#activitySuccessModal.active {
-    visibility: visible;
-    opacity: 1;
+#activitySuccessModal.active,
+#selectDateModal.active {
+    display: flex;
 }
 
 #uploadSuccessModal .modal-box,
-#activitySuccessModal .modal-box {
+#activitySuccessModal .modal-box,
+#selectDateModal .modal-box {
     background: #023020;
     color: white;
     border-radius: 12px;
@@ -908,7 +908,8 @@ body {
 }
 
 #uploadSuccessModal .modal-box h2,
-#activitySuccessModal .modal-box h2 {
+#activitySuccessModal .modal-box h2,
+#selectDateModal .modal-box h2 {
     margin-bottom: 16px;
     font-size: 18px;
 }
@@ -920,12 +921,14 @@ body {
 }
 
 #uploadSuccessModal .modal-box p,
-#activitySuccessModal .modal-box p {
+#activitySuccessModal .modal-box p,
+#selectDateModal .modal-box p {
     margin-bottom: 24px;
 }
 
 #uploadSuccessModal .modal-box .btn-primary,
-#activitySuccessModal .modal-box .btn-primary {
+#activitySuccessModal .modal-box .btn-primary,
+#selectDateModal .modal-box .btn-primary {
     padding: 8px 16px;
     border-radius: 6px;
     border: none;
@@ -935,7 +938,8 @@ body {
 }
 
 #uploadSuccessModal .modal-box .btn-primary:hover,
-#activitySuccessModal .modal-box .btn-primary:hover {
+#activitySuccessModal .modal-box .btn-primary:hover,
+#selectDateModal .modal-box .btn-primary:hover {
     background: #34c38f;
 }
 
