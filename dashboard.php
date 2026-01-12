@@ -80,25 +80,17 @@ if ($view === 'main') {
 </head>
 <body>
 
-
-<header class="dash-header">
-    <div class="header-left">
-        <img src="img/NEECO_banner.png" alt="Company Logo" class="app-logo">
-    </div>
-    <div class="header-center">
-        <h1 style="color: #1f8f5f; margin: 0; font-size: 18px;">Report & Activity Management System</h1>
-    </div>
-    <div class="header-right">
-        <i class="fas fa-users"></i>
-        <i class="fas fa-bell"></i>
-        <i class="fas fa-user"></i>
-    </div>
-</header>
-
 <div class="main-layout">
-    
+
     <aside class="sidebar">
         <div>
+            <div class="sidebar-header">
+                <img src="img/NEECO_banner.png" alt="Company Logo" class="app-logo">
+                <div class="user-info">
+                    <?= htmlspecialchars($_SESSION['name']) ?>
+                </div>
+            </div>
+            <!-- <h1>Report & Activity Management System</h1> -->
             <ul>
                 <li><a href="?view=main" class="<?= $view === 'main' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a></li>
                 <li><a href="?view=folders" class="<?= $view === 'folders' ? 'active' : '' ?>"><i class="fas fa-folder"></i> Report Folders</a></li>
@@ -107,7 +99,14 @@ if ($view === 'main') {
                 <li><a href="?view=logs" class="<?= $view === 'logs' ? 'active' : '' ?>"><i class="fas fa-history"></i> Activity Log</a></li>
             </ul>
         </div>
-        <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        <div class="sidebar-footer">
+            <div class="sidebar-icons">
+                <i class="fas fa-users"></i>
+                <i class="fas fa-bell"></i>
+                <i class="fas fa-user"></i>
+            </div>
+            <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        </div>
     </aside>
 
    
@@ -126,10 +125,11 @@ if ($view === 'main') {
 
 
     <main class="main-content">
+        
         <?php if ($view === 'main'): ?>
-            <div class="main-header">
+            <div class="main-top-bar">
                 <h2>Main Dashboard</h2>
-                <div class="search-container">
+                <div class="search-center">
                     <form method="GET" action="dashboard.php" class="search-box">
                         <input type="hidden" name="view" value="main">
                         <i class="fas fa-search"></i>
@@ -139,7 +139,13 @@ if ($view === 'main') {
                                value="<?= htmlspecialchars($search) ?>">
                     </form>
                 </div>
+                <div class="icons-right">
+                    <i class="fas fa-users"></i>
+                    <i class="fas fa-bell"></i>
+                    <i class="fas fa-user"></i>
+                </div>
             </div>
+            
             <div class="stats">
                 <div class="stat-card">
                     <h3>Total Uploaded This Month</h3>
