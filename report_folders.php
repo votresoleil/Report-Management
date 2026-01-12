@@ -2,6 +2,7 @@
 require 'config/db.php';
 require 'config/auth.php';
 
+$active_view = 'folders';
 $month = $_GET['month'] ?? null;
 $search = $_GET['search'] ?? '';
 
@@ -39,29 +40,7 @@ if ($month) {
 
 <div class="main-layout">
 
-    <aside class="sidebar">
-        <div>
-            <div class="sidebar-header">
-                <img src="img/NEECO_banner.png" alt="Company Logo" class="app-logo">
-                <div class="user-info">
-                    <span><?= htmlspecialchars($_SESSION['name']) ?></span>
-                </div>
-            </div>
-
-            <ul>
-                <li><a href="dashboard.php?view=main"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a></li>
-                <li><a href="report_folders.php" class="active"><i class="fas fa-folder"></i> Report Folders</a></li>
-                <li><a href="dashboard.php?view=calendar"><i class="fas fa-calendar"></i> Activity Calendar</a></li>
-                <li><a href="dashboard.php?view=archives"><i class="fas fa-archive"></i> Archives</a></li>
-                <li><a href="dashboard.php?view=logs"><i class="fas fa-history"></i> Activity Log</a></li>
-            </ul>
-        </div>
-        <div class="sidebar-footer">
-            <div class="sidebar-icons">
-            </div>
-            <button id="logoutBtn" class="logout-btn"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-    </aside>
+    <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
         <div class="main-top-bar">
@@ -124,39 +103,6 @@ if ($month) {
         <?php endif; ?>
     </main>
 </div>
-
-<div id="logoutModal">
-    <div class="modal-box">
-        <h2>Confirm Logout</h2>
-        <p>Are you sure you want to log out?</p>
-        <div class="actions">
-            <button class="cancel" id="cancelLogout"><i class="fas fa-times"></i> Cancel</button>
-            <form method="POST" action="logout.php">
-                <button type="submit"><i class="fas fa-sign-out-alt"></i> Logout</button>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-const logoutBtn = document.getElementById('logoutBtn');
-const logoutModal = document.getElementById('logoutModal');
-const cancelBtn = document.getElementById('cancelLogout');
-
-logoutBtn.addEventListener('click', () => {
-    logoutModal.classList.add('active');
-});
-
-cancelBtn.addEventListener('click', () => {
-    logoutModal.classList.remove('active');
-});
-
-logoutModal.addEventListener('click', (e) => {
-    if(e.target === logoutModal){
-        logoutModal.classList.remove('active');
-    }
-});
-</script>
 
 </body>
 </html>
