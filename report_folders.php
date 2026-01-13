@@ -3,27 +3,45 @@ require 'config/db.php';
 require 'config/auth.php';
 
 $active_view = 'folders';
+$year = $_GET['year'] ?? null;
 $month = $_GET['month'] ?? null;
 $search = $_GET['search'] ?? '';
+$months = [];
 
-// Show folder overview
-$folders = [];
-for ($m = 1; $m <= 12; $m++) {
-    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'active' AND report_month = ?");
-    $stmt->execute([$m]);
-    $folders[$m] = $stmt->fetch()['count'];
+// Show folder overview - years with reports
+$years = [];
+$stmt = $pdo->query("SELECT DISTINCT report_year FROM reports WHERE status = 'active' ORDER BY report_year DESC");
+$yearRows = $stmt->fetchAll();
+foreach ($yearRows as $row) {
+    $y = $row['report_year'];
+    $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'active' AND report_year = ?");
+    $stmt->execute([$y]);
+    $years[$y] = $stmt->fetch()['count'];
 }
 
-if ($month) {
-    // Show reports for specific month
+if ($year && !$month) {
+    // Show months for specific year
+    $months = [];
+    for ($m = 1; $m <= 12; $m++) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'active' AND report_year = ? AND report_month = ?");
+        $stmt->execute([$year, $m]);
+        $count = $stmt->fetch()['count'];
+        if ($count > 0) {
+            $months[$m] = $count;
+        }
+    }
+}
+
+if ($year && $month) {
+    // Show reports for specific month and year
     $stmt = $pdo->prepare("
         SELECT r.*, u.full_name
         FROM reports r
         JOIN users u ON r.uploaded_by = u.user_id
-        WHERE r.status = 'active' AND r.report_month = ? AND r.report_title LIKE ?
-        ORDER BY r.report_year DESC
+        WHERE r.status = 'active' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
+        ORDER BY r.report_id DESC
     ");
-    $stmt->execute([$month, "%$search%"]);
+    $stmt->execute([$year, $month, "%$search%"]);
     $reports = $stmt->fetchAll();
 }
 ?>
@@ -52,27 +70,32 @@ if ($month) {
             </div>
         </div>
         <div class="content-section">
-            <div class="folders-container">
-            <?php for ($m = 1; $m <= 12; $m++): ?>
-                <div class="folder-card">
-                    <a href="?month=<?= $m ?>">
-                        <i class="fas fa-folder"></i>
-                        <h3><?= date('F', mktime(0,0,0,$m,1)) ?></h3>
-                        <p><?= $folders[$m] ?> reports</p>
-                    </a>
+            <div class="folders-container" id="yearsContainer">
+            <?php foreach ($years as $y => $count): ?>
+                <div class="folder-card" data-year="<?= $y ?>">
+                    <i class="fas fa-folder"></i>
+                    <h3><?= $y ?></h3>
+                    <p><?= $count ?> reports</p>
                 </div>
-            <?php endfor; ?>
+            <?php endforeach; ?>
+            </div>
+            <div id="monthsPanel" style="display: none;">
+                <h3 id="monthsTitle"></h3>
+                <div class="folders-container" id="monthsContainer">
+                </div>
+            </div>
         </div>
 
-        <div id="monthModal" class="<?= $month ? 'active' : '' ?>">
+        <?php if ($year && $month): ?>
+        <div id="monthModal" class="active">
             <div class="modal-box large">
                 <div class="modal-header">
-                    <h2>Reports for <?= $month ? date('F', mktime(0,0,0,$month,1)) : '' ?></h2>
+                    <h2>Reports for <?= $month ? date('F Y', mktime(0,0,0,$month,1,$year)) : '' ?></h2>
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" id="searchInput" placeholder="Search reports..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
                     </div>
-                    <button class="close-btn" id="closeMonthModal">&times;</button>
+                    <button class="close-btn" id="closeMonthModal" onclick="window.location.href='?year=<?= $year ?>'">&times;</button>
                 </div>
                 <div class="modal-content">
                     <div class="reports" id="reportsList">
@@ -108,6 +131,7 @@ if ($month) {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </main>
 </div>
 
@@ -123,23 +147,26 @@ if ($month) {
 </div>
 
 <script>
-const monthModal = document.getElementById('monthModal');
-const closeMonthModal = document.getElementById('closeMonthModal');
 const archiveModal = document.getElementById('archiveModal');
 const confirmArchive = document.getElementById('confirmArchive');
 const cancelArchive = document.getElementById('cancelArchive');
 
 let archiveId = null;
 
-closeMonthModal.addEventListener('click', () => {
-    window.location.href = 'report_folders.php';
-});
 
-monthModal.addEventListener('click', (e) => {
-    if(e.target === monthModal){
+const monthModal = document.getElementById('monthModal');
+if (monthModal) {
+    const closeMonthModal = document.getElementById('closeMonthModal');
+    closeMonthModal.addEventListener('click', () => {
         window.location.href = 'report_folders.php';
-    }
-});
+    });
+
+    monthModal.addEventListener('click', (e) => {
+        if(e.target === monthModal){
+            window.location.href = '?year=<?= $year ?>';
+        }
+    });
+}
 
 document.addEventListener('click', (e) => {
     if (e.target.closest('.archive-btn')) {
@@ -174,8 +201,9 @@ const isAdmin = <?= isAdmin() ? 'true' : 'false' ?>;
 if (searchInput && reportsList) {
     searchInput.addEventListener('input', function() {
         const query = this.value;
+        const year = <?= json_encode($year) ?>;
         const month = <?= json_encode($month) ?>;
-        fetch(`search_reports.php?search=${encodeURIComponent(query)}&month=${month}`)
+        fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}`)
             .then(response => response.json())
             .then(data => {
                 reportsList.innerHTML = '';
@@ -214,6 +242,62 @@ if (searchInput && reportsList) {
                 }
             });
     });
+}
+
+let selectedYear = null;
+
+document.querySelectorAll('.folder-card[data-year]').forEach(card => {
+    card.addEventListener('click', function() {
+        const year = this.dataset.year;
+        if (selectedYear === year) {
+            // Close
+            selectedYear = null;
+            document.getElementById('monthsPanel').style.display = 'none';
+            document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
+        } else {
+            // Open
+            selectedYear = year;
+            document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
+            this.classList.add('selected');
+            document.getElementById('monthsTitle').textContent = `Months for ${year}`;
+            fetchMonths(year);
+        }
+    });
+});
+
+function fetchMonths(year) {
+    // Fetch months for the year
+    fetch(`get_months.php?year=${year}`)
+        .then(response => response.json())
+        .then(data => {
+            const container = document.getElementById('monthsContainer');
+            container.innerHTML = '';
+            for (const [m, count] of Object.entries(data)) {
+                const card = document.createElement('div');
+                card.className = 'folder-card';
+                card.innerHTML = `
+                    <a href="?year=${year}&month=${m}">
+                        <i class="fas fa-folder"></i>
+                        <h3>${new Date(year, m-1, 1).toLocaleString('default', { month: 'long' })}</h3>
+                        <p>${count} reports</p>
+                    </a>
+                `;
+                container.appendChild(card);
+            }
+            document.getElementById('monthsPanel').style.display = 'block';
+        });
+}
+
+// Check if year is in URL and open panel
+const urlParams = new URLSearchParams(window.location.search);
+const yearParam = urlParams.get('year');
+if (yearParam) {
+    selectedYear = yearParam;
+    const yearCard = document.querySelector(`.folder-card[data-year="${yearParam}"]`);
+    if (yearCard) {
+        yearCard.classList.add('selected');
+        fetchMonths(yearParam);
+    }
 }
 </script>
 

@@ -3,15 +3,22 @@ require 'config/db.php';
 require 'config/auth.php';
 
 $search = $_GET['search'] ?? '';
+$year = $_GET['year'] ?? null;
 $month = $_GET['month'] ?? null;
+$status = $_GET['status'] ?? 'active';
 
 $query = "
     SELECT r.*, u.full_name, r.uploaded_at
     FROM reports r
     JOIN users u ON r.uploaded_by = u.user_id
-    WHERE r.status = 'active' AND r.report_title LIKE ?
+    WHERE r.status = ? AND r.report_title LIKE ?
 ";
-$params = ["%$search%"];
+$params = [$status, "%$search%"];
+
+if ($year) {
+    $query .= " AND r.report_year = ?";
+    $params[] = $year;
+}
 
 if ($month) {
     $query .= " AND r.report_month = ?";

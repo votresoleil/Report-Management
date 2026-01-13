@@ -727,6 +727,15 @@ body {
     transform: translateY(-5px);
 }
 
+.folder-card.selected {
+    background: #1f8f5f;
+    color: white;
+}
+
+.folder-card.selected i {
+    color: white;
+}
+
 .folder-card a {
     text-decoration: none;
     color: inherit;
@@ -900,7 +909,9 @@ body {
 #selectDateModal,
 #uploadReportModal,
 #previewModal,
-#archiveModal {
+#archiveModal,
+#restoreModal,
+#deleteModal {
     position: fixed;
     inset: 0;
     display: none;
@@ -908,7 +919,7 @@ body {
     justify-content: center;
     background: rgba(0,0,0,0.5);
     transition: opacity 0.3s ease;
-    z-index: 1000;
+    z-index: 1001;
 }
 
 #uploadSuccessModal.active,
@@ -917,7 +928,9 @@ body {
 #selectDateModal.active,
 #uploadReportModal.active,
 #previewModal.active,
-#archiveModal.active {
+#archiveModal.active,
+#restoreModal.active,
+#deleteModal.active {
     display: flex;
 }
 
