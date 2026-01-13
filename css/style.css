@@ -655,14 +655,28 @@ body {
     background: green;
 }
 
-.check-icon {
-    color: green;
-    font-size: 20px;
+.check-btn {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #1f8f5f;
+    color: #1f8f5f;
+    text-align: center;
+    line-height: 20px;
     text-decoration: none;
+    font-size: 12px;
+    transition: all 0.2s ease;
 }
 
-.check-icon:hover {
-    color: darkgreen;
+.check-btn.completed {
+    background: #1f8f5f;
+    color: white;
+}
+
+.check-btn:hover {
+    opacity: 0.8;
 }
 
 /* Calendar Table */
@@ -1152,4 +1166,22 @@ body {
     margin-bottom: 5px;
     display: block;
     color: #333;
+}
+
+/* No Reports */
+.no-reports {
+    text-align: center;
+    padding: 40px 20px;
+    color: #777;
+}
+
+.no-reports i {
+    font-size: 48px;
+    color: #1f8f5f;
+    margin-bottom: 10px;
+}
+
+.no-reports p {
+    font-size: 16px;
+    margin: 0;
 }

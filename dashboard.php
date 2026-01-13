@@ -177,7 +177,10 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
             </div>
             <div class="reports-list">
                 <?php if (empty($data['recent_reports'])): ?>
-                    <p>No recent reports.</p>
+                    <div class="no-reports">
+                        <i class="fas fa-file-alt"></i>
+                        <p>No recent reports found.</p>
+                    </div>
                 <?php else: ?>
                     <?php foreach ($data['recent_reports'] as $r): ?>
                         <div class="report-card">
@@ -310,7 +313,8 @@ function selectDate(date, element) {
     } else {
         dayActivities.forEach(act => {
             const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
-            const checkIcon = act.status !== 'completed' ? `<a href="update_activity.php?id=${act.id}&status=completed" class="check-icon"><i class="fas fa-check-circle"></i></a>` : '';
+            const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
+            const checkIcon = `<a href="update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
             const div = document.createElement('div');
             div.className = 'activity-item';
             div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p>${act.description}</p></div>${checkIcon}`;
@@ -456,7 +460,7 @@ searchInput.addEventListener('input', function() {
         .then(data => {
             reportsList.innerHTML = '';
             if (data.length === 0) {
-                reportsList.innerHTML = '<p>No recent reports.</p>';
+                reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No recent reports found.</p></div>';
             } else {
                 data.forEach(r => {
                     const ext = r.local_path.split('.').pop().toLowerCase();

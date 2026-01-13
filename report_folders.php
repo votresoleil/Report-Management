@@ -68,17 +68,19 @@ if ($month) {
             <div class="modal-box large">
                 <div class="modal-header">
                     <h2>Reports for <?= $month ? date('F', mktime(0,0,0,$month,1)) : '' ?></h2>
-                    <form method="GET" action="report_folders.php" class="search-box">
-                        <input type="hidden" name="month" value="<?= $month ?>">
+                    <div class="search-box">
                         <i class="fas fa-search"></i>
-                        <input type="text" name="search" placeholder="Search reports..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
-                    </form>
+                        <input type="text" id="searchInput" placeholder="Search reports..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
+                    </div>
                     <button class="close-btn" id="closeMonthModal">&times;</button>
                 </div>
                 <div class="modal-content">
-                    <div class="reports">
+                    <div class="reports" id="reportsList">
                         <?php if (empty($reports)): ?>
-                            <p class="empty-state">No reports found for this month.</p>
+                            <div class="no-reports">
+                                <i class="fas fa-file-alt"></i>
+                                <p>No reports found for this month.</p>
+                            </div>
                         <?php else: ?>
                             <?php foreach ($reports as $r): ?>
                                 <div class="report-card">
@@ -164,6 +166,55 @@ archiveModal.addEventListener('click', (e) => {
         archiveId = null;
     }
 });
+
+const searchInput = document.getElementById('searchInput');
+const reportsList = document.getElementById('reportsList');
+const isAdmin = <?= isAdmin() ? 'true' : 'false' ?>;
+
+if (searchInput && reportsList) {
+    searchInput.addEventListener('input', function() {
+        const query = this.value;
+        const month = <?= json_encode($month) ?>;
+        fetch(`search_reports.php?search=${encodeURIComponent(query)}&month=${month}`)
+            .then(response => response.json())
+            .then(data => {
+                reportsList.innerHTML = '';
+                if (data.length === 0) {
+                    reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
+                } else {
+                    data.forEach(r => {
+                        let actions = `
+                            <a href="${r.local_path}" target="_blank" title="View">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        `;
+                        if (isAdmin) {
+                            actions += `
+                                <button class="archive-btn" data-id="${r.report_id}" title="Archive">
+                                    <i class="fas fa-archive"></i>
+                                </button>
+                                <a href="delete_report.php?id=${r.report_id}" class="danger" title="Delete" onclick="return confirm('Delete?')">
+                                    <i class="fas fa-trash"></i>
+                                </a>
+                            `;
+                        }
+                        const card = `
+                            <div class="report-card">
+                                <div class="report-info">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span>${r.report_title}</span>
+                                </div>
+                                <div class="report-actions">
+                                    ${actions}
+                                </div>
+                            </div>
+                        `;
+                        reportsList.innerHTML += card;
+                    });
+                }
+            });
+    });
+}
 </script>
 
 </body>
