@@ -91,9 +91,9 @@ if ($month) {
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <?php if (isAdmin()): ?>
-                                            <a href="archive_report.php?id=<?= $r['report_id'] ?>" title="Archive">
+                                            <button class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive">
                                                 <i class="fas fa-archive"></i>
-                                            </a>
+                                            </button>
                                             <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Delete?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>
@@ -109,9 +109,25 @@ if ($month) {
     </main>
 </div>
 
+<div id="archiveModal">
+    <div class="modal-box">
+        <h2>Confirm Archive</h2>
+        <p>Are you sure you want to archive this report?</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="confirmArchive" class="btn-primary" style="width: 100px;">Archive</button>
+            <button id="cancelArchive" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const monthModal = document.getElementById('monthModal');
 const closeMonthModal = document.getElementById('closeMonthModal');
+const archiveModal = document.getElementById('archiveModal');
+const confirmArchive = document.getElementById('confirmArchive');
+const cancelArchive = document.getElementById('cancelArchive');
+
+let archiveId = null;
 
 closeMonthModal.addEventListener('click', () => {
     window.location.href = 'report_folders.php';
@@ -120,6 +136,32 @@ closeMonthModal.addEventListener('click', () => {
 monthModal.addEventListener('click', (e) => {
     if(e.target === monthModal){
         window.location.href = 'report_folders.php';
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.archive-btn')) {
+        const btn = e.target.closest('.archive-btn');
+        archiveId = btn.dataset.id;
+        archiveModal.classList.add('active');
+    }
+});
+
+confirmArchive.addEventListener('click', () => {
+    if (archiveId) {
+        window.location.href = `archive_report.php?id=${archiveId}`;
+    }
+});
+
+cancelArchive.addEventListener('click', () => {
+    archiveModal.classList.remove('active');
+    archiveId = null;
+});
+
+archiveModal.addEventListener('click', (e) => {
+    if (e.target === archiveModal) {
+        archiveModal.classList.remove('active');
+        archiveId = null;
     }
 });
 </script>

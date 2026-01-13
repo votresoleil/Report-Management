@@ -94,6 +94,21 @@
     transform: translateY(-2px);
 }
 
+.btn-secondary {
+    background: #ccc;
+    color: #333;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: background 0.3s;
+}
+
+.btn-secondary:hover {
+    background: #aaa;
+}
+
 /* Error */
 .error {
     background: #ffe0e0;
@@ -868,7 +883,10 @@ body {
 #uploadSuccessModal,
 #addActivityModal,
 #activitySuccessModal,
-#selectDateModal {
+#selectDateModal,
+#uploadReportModal,
+#previewModal,
+#archiveModal {
     position: fixed;
     inset: 0;
     display: none;
@@ -882,28 +900,34 @@ body {
 #uploadSuccessModal.active,
 #addActivityModal.active,
 #activitySuccessModal.active,
-#selectDateModal.active {
+#selectDateModal.active,
+#uploadReportModal.active,
+#previewModal.active,
+#archiveModal.active {
     display: flex;
 }
 
 #uploadSuccessModal .modal-box,
 #activitySuccessModal .modal-box,
-#selectDateModal .modal-box {
-    background: #023020;
-    color: white;
+#selectDateModal .modal-box,
+#archiveModal .modal-box {
+    background: white;
+    color: black;
     border-radius: 12px;
     padding: 24px;
     width: 320px;
     text-align: center;
 }
 
-#addActivityModal .modal-box.large {
+#addActivityModal .modal-box.large,
+#uploadReportModal .modal-box.large,
+#previewModal .modal-box.large {
     background: white;
     color: black;
     border-radius: 12px;
     padding: 24px;
     width: 80%;
-    max-width: 500px;
+    max-width: 800px;
     text-align: left;
 }
 
@@ -943,7 +967,8 @@ body {
     background: #34c38f;
 }
 
-#addActivityModal .modal-box form {
+#addActivityModal .modal-box form,
+#uploadReportModal .modal-box form {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -951,7 +976,9 @@ body {
 }
 
 #addActivityModal .modal-box input,
-#addActivityModal .modal-box textarea {
+#addActivityModal .modal-box textarea,
+#uploadReportModal .modal-box input,
+#uploadReportModal .modal-box select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -1081,6 +1108,18 @@ body {
     font-size: 14px;
 }
 
+.report-title {
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.report-meta {
+    display: block;
+    font-size: 12px;
+    color: #777;
+}
+
 /* Actions */
 .report-actions a {
     margin-left: 12px;
@@ -1105,4 +1144,12 @@ body {
     display: block;
     margin-left: auto;
     margin-right: auto;
+}
+
+/* Modal Labels */
+.modal-content label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #333;
 }

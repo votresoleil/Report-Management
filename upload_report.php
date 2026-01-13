@@ -13,12 +13,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Invalid file type. Only PDF and Word files are allowed.");
     }
 
-    // Get the month/year from form
+    // Get the month/year/day from form
     $year  = $_POST['year'];
     $month = str_pad($_POST['month'], 2, '0', STR_PAD_LEFT);
+    $day = str_pad($_POST['day'], 2, '0', STR_PAD_LEFT);
 
-    // Folder structure: uploads/2025/01/
-    $dir = "uploads/$year/$month/";
+    // Folder structure: uploads/2025/01/01/
+    $dir = "uploads/$year/$month/$day/";
 
     // Automatically create folder if it doesn't exist
     if (!is_dir($dir)) {
@@ -36,7 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Insert into database
     $stmt = $pdo->prepare("
-        INSERT INTO reports 
+        INSERT INTO reports
         (report_title, file_name, file_type, file_size, local_path, report_month, report_year, uploaded_by)
         VALUES (?,?,?,?,?,?,?,?)
     ");

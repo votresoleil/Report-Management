@@ -13,7 +13,7 @@ $stmt->execute([$currentMonth, $currentYear]);
 $data['total_this_month'] = $stmt->fetch()['total'];
 
 $stmt = $pdo->prepare("
-    SELECT r.*, u.full_name
+    SELECT r.*, u.full_name, r.uploaded_at
     FROM reports r
     JOIN users u ON r.uploaded_by = u.user_id
     WHERE r.status = 'active' AND r.report_title LIKE ?
@@ -163,31 +163,17 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
                 </div>
             </div>
         </div>
+
         </div>
-        <div class="upload-section">
-            <h3>Quick Upload</h3>
-            <form action="upload_report.php" method="POST" enctype="multipart/form-data">
-                <input type="text" name="title" placeholder="Report Title" required>
-                <input type="file" name="report" required>
-                <select name="month" required>
-                    <?php for ($m=1; $m<=12; $m++): ?>
-                        <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
-                    <?php endfor; ?>
-                </select>
-                <input type="number" name="year" value="<?= date('Y') ?>" required>
-                <button type="submit">Upload</button>
-            </form>
-        </div>
+
         <div class="recent-reports">
-            <div class="panel-header">
+            <div class="panel-header" style="display: flex; align-items: center;">
                 <h3>Recently Added Reports</h3>
-                <form method="GET" action="dashboard.php" class="search-box">
+                <div class="search-box" style="margin: 0 auto;">
                     <i class="fas fa-search"></i>
-                    <input type="text"
-                           name="search"
-                           placeholder="Search reports..."
-                           value="<?= htmlspecialchars($search) ?>">
-                </form>
+                    <input type="text" id="searchInput" placeholder="Search reports...">
+                </div>
+                <button id="uploadReportBtn" class="add-activity-btn"><i class="fas fa-upload"></i> Upload Report</button>
             </div>
             <div class="reports-list">
                 <?php if (empty($data['recent_reports'])): ?>
@@ -197,12 +183,15 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
                         <div class="report-card">
                             <div class="report-info">
                                 <i class="fas fa-file-alt"></i>
-                                <span><?= htmlspecialchars($r['report_title']) ?></span>
+                                <div>
+                                    <span class="report-title"><?= htmlspecialchars($r['report_title']) ?></span>
+                                    <span class="report-meta">Uploaded by <?= htmlspecialchars($r['full_name']) ?> on <?= date('M d, Y', strtotime($r['uploaded_at'])) ?> | Type: <?= strtoupper(pathinfo($r['local_path'], PATHINFO_EXTENSION)) ?></span>
+                                </div>
                             </div>
                             <div class="report-actions">
-                                <a href="<?= htmlspecialchars($r['local_path']) ?>" target="_blank" title="View">
+                                <button class="view-btn" data-path="<?= htmlspecialchars($r['local_path']) ?>" data-title="<?= htmlspecialchars($r['report_title']) ?>" title="View">
                                     <i class="fas fa-eye"></i>
-                                </a>
+                                </button>
                             </div>
                         </div>
                     <?php endforeach; ?>
@@ -250,6 +239,54 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
         <h2>Notice</h2>
         <p>Please select a date first.</p>
         <button class="btn-primary" id="closeSelectDateModal">OK</button>
+    </div>
+</div>
+
+<div id="uploadReportModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upload Report</h2>
+            <button class="close-btn" id="closeUploadReportModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form action="upload_report.php" method="POST" enctype="multipart/form-data">
+                <label for="title">Report Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter report title" required>
+                <label for="report">Select File</label>
+                <input type="file" id="report" name="report" required>
+                <label for="month">Month</label>
+                <select id="month" name="month" required>
+                    <?php for ($m=1; $m<=12; $m++): ?>
+                        <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="day">Day</label>
+                <select id="day" name="day" required>
+                    <?php for ($d=1; $d<=31; $d++): ?>
+                        <option value="<?= $d ?>"><?= $d ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="year">Year</label>
+                <input type="number" id="year" name="year" value="<?= date('Y') ?>" required>
+                <button type="submit" class="btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="previewModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Preview Document</h2>
+            <button class="close-btn" id="closePreviewModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <iframe id="documentPreview" src="" width="100%" height="500px" style="border: none;"></iframe>
+            <div id="previewMessage" style="display: none; text-align: center; padding: 20px;">Preview not available for this file type. Please use the download button.</div>
+            <div style="text-align: center; margin-top: 10px;">
+                <a id="downloadLink" href="" download><button class="btn-primary">Download</button></a>
+            </div>
+        </div>
     </div>
 </div>
 
@@ -341,6 +378,65 @@ selectDateModal.addEventListener('click', (e) => {
    }
 });
 
+const uploadReportModal = document.getElementById('uploadReportModal');
+const uploadReportBtn = document.getElementById('uploadReportBtn');
+const closeUploadReportModal = document.getElementById('closeUploadReportModal');
+
+uploadReportBtn.addEventListener('click', () => {
+    uploadReportModal.classList.add('active');
+});
+
+closeUploadReportModal.addEventListener('click', () => {
+    uploadReportModal.classList.remove('active');
+});
+
+uploadReportModal.addEventListener('click', (e) => {
+    if(e.target === uploadReportModal){
+        uploadReportModal.classList.remove('active');
+    }
+});
+
+const previewModal = document.getElementById('previewModal');
+const closePreviewModal = document.getElementById('closePreviewModal');
+const documentPreview = document.getElementById('documentPreview');
+const downloadLink = document.getElementById('downloadLink');
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.view-btn')) {
+        const btn = e.target.closest('.view-btn');
+        const path = btn.dataset.path;
+        const title = btn.dataset.title;
+        const ext = path.split('.').pop().toLowerCase();
+        if (['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+            documentPreview.src = path;
+            documentPreview.style.display = 'block';
+            previewMessage.style.display = 'none';
+        } else {
+            documentPreview.style.display = 'none';
+            previewMessage.style.display = 'block';
+        }
+        downloadLink.href = path;
+        downloadLink.download = title + '.' + ext;
+        previewModal.classList.add('active');
+    }
+});
+
+closePreviewModal.addEventListener('click', () => {
+    previewModal.classList.remove('active');
+    documentPreview.src = '';
+    documentPreview.style.display = 'block';
+    previewMessage.style.display = 'none';
+});
+
+previewModal.addEventListener('click', (e) => {
+    if(e.target === previewModal){
+        previewModal.classList.remove('active');
+        documentPreview.src = '';
+        documentPreview.style.display = 'block';
+        previewMessage.style.display = 'none';
+    }
+});
+
 document.querySelector('.calendar-section').addEventListener('click', function(e) {
     if (!e.target.closest('.day')) {
         document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
@@ -348,6 +444,40 @@ document.querySelector('.calendar-section').addEventListener('click', function(e
         document.getElementById('activity-date').textContent = 'Select a date';
         document.getElementById('activity-list').innerHTML = '<p>Click on a date to view or add activities.</p>';
     }
+});
+
+const searchInput = document.getElementById('searchInput');
+const reportsList = document.querySelector('.reports-list');
+
+searchInput.addEventListener('input', function() {
+    const query = this.value;
+    fetch(`search_reports.php?search=${encodeURIComponent(query)}`)
+        .then(response => response.json())
+        .then(data => {
+            reportsList.innerHTML = '';
+            if (data.length === 0) {
+                reportsList.innerHTML = '<p>No recent reports.</p>';
+            } else {
+                data.forEach(r => {
+                    const ext = r.local_path.split('.').pop().toLowerCase();
+                    const card = `
+                        <div class="report-card">
+                            <div class="report-info">
+                                <i class="fas fa-file-alt"></i>
+                                <div>
+                                    <span class="report-title">${r.report_title}</span>
+                                    <span class="report-meta">Uploaded by ${r.full_name} on ${new Date(r.uploaded_at).toLocaleDateString()} | Type: ${ext.toUpperCase()}</span>
+                                </div>
+                            </div>
+                            <div class="report-actions">
+                                <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}"><i class="fas fa-eye"></i></button>
+                            </div>
+                        </div>
+                    `;
+                    reportsList.innerHTML += card;
+                });
+            }
+        });
 });
 
 <?php if ($selected_date): ?>
