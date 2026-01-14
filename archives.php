@@ -138,7 +138,7 @@ if ($year && $month) {
                  </div>
              </div>
          </div>
-         <?php endif; ?>
+         
 
          <div id="restoreModal">
              <div class="modal-box">
@@ -164,7 +164,7 @@ if ($year && $month) {
 
      </main>
 </div>
-
+<?php endif; ?>
 <script>
 let selectedYear = null;
 
