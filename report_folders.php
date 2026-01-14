@@ -118,9 +118,9 @@ if ($year && $month) {
                                         <span><?= htmlspecialchars($r['report_title']) ?></span>
                                     </div>
                                     <div class="report-actions">
-                                        <a href="<?= htmlspecialchars($r['local_path']) ?>" target="_blank" title="View">
+                                        <button class="view-btn" data-path="<?= htmlspecialchars($r['local_path']) ?>" data-title="<?= htmlspecialchars($r['report_title']) ?>" title="View">
                                             <i class="fas fa-eye"></i>
-                                        </a>
+                                        </button>
                                         <?php if (isAdmin()): ?>
                                             <a href="#" class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive" onclick="return false;">
                                                 <i class="fas fa-file-archive"></i>
@@ -148,6 +148,22 @@ if ($year && $month) {
         <div style="text-align: center; margin-top: 20px;">
             <button id="confirmArchive" class="btn-primary" style="width: 100px;">Archive</button>
             <button id="cancelArchive" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="previewModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Preview Document</h2>
+            <button class="close-btn" id="closePreviewModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <iframe id="documentPreview" src="" width="100%" height="500px" style="border: none;"></iframe>
+            <div id="previewMessage" style="display: none; text-align: center; padding: 20px;">Preview not available for this file type. Please use the download button.</div>
+            <div style="text-align: center; margin-top: 10px;">
+                <a id="downloadLink" href="" download><button class="btn-primary">Download</button></a>
+            </div>
         </div>
     </div>
 </div>
@@ -218,9 +234,9 @@ if (searchInput && reportsList) {
                 } else {
                     data.forEach(r => {
                         let actions = `
-                            <a href="${r.local_path}" target="_blank" title="View">
+                            <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
                                 <i class="fas fa-eye"></i>
-                            </a>
+                            </button>
                         `;
                         if (isAdmin) {
                             actions += `
@@ -305,6 +321,75 @@ if (yearParam) {
         fetchMonths(yearParam);
     }
 }
+
+const previewModal = document.getElementById('previewModal');
+const closePreviewModal = document.getElementById('closePreviewModal');
+const documentPreview = document.getElementById('documentPreview');
+const downloadLink = document.getElementById('downloadLink');
+const previewMessage = document.getElementById('previewMessage');
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.view-btn')) {
+        const btn = e.target.closest('.view-btn');
+        const path = btn.dataset.path;
+        const title = btn.dataset.title;
+        const ext = path.split('.').pop().toLowerCase();
+        if (['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+            documentPreview.src = path;
+            documentPreview.style.display = 'block';
+            previewMessage.style.display = 'none';
+            downloadLink.href = path;
+            downloadLink.download = title + '.' + ext;
+            previewModal.classList.add('active');
+        } else if (ext === 'docx') {
+            // Convert DOCX to PDF for preview
+            fetch(`convert_to_pdf.php?path=${encodeURIComponent(path)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pdf_path) {
+                        documentPreview.src = data.pdf_path;
+                        documentPreview.style.display = 'block';
+                        previewMessage.style.display = 'none';
+                    } else {
+                        documentPreview.style.display = 'none';
+                        previewMessage.style.display = 'block';
+                    }
+                    downloadLink.href = path;
+                    downloadLink.download = title + '.' + ext;
+                    previewModal.classList.add('active');
+                })
+                .catch(() => {
+                    documentPreview.style.display = 'none';
+                    previewMessage.style.display = 'block';
+                    downloadLink.href = path;
+                    downloadLink.download = title + '.' + ext;
+                    previewModal.classList.add('active');
+                });
+        } else {
+            documentPreview.style.display = 'none';
+            previewMessage.style.display = 'block';
+            downloadLink.href = path;
+            downloadLink.download = title + '.' + ext;
+            previewModal.classList.add('active');
+        }
+    }
+});
+
+closePreviewModal.addEventListener('click', () => {
+    previewModal.classList.remove('active');
+    documentPreview.src = '';
+    documentPreview.style.display = 'block';
+    previewMessage.style.display = 'none';
+});
+
+previewModal.addEventListener('click', (e) => {
+    if(e.target === previewModal){
+        previewModal.classList.remove('active');
+        documentPreview.src = '';
+        documentPreview.style.display = 'block';
+        previewMessage.style.display = 'none';
+    }
+});
 </script>
 
 </body>

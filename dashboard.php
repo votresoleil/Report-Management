@@ -415,13 +415,40 @@ document.addEventListener('click', (e) => {
             documentPreview.src = path;
             documentPreview.style.display = 'block';
             previewMessage.style.display = 'none';
+            downloadLink.href = path;
+            downloadLink.download = title + '.' + ext;
+            previewModal.classList.add('active');
+        } else if (ext === 'docx') {
+            // Convert DOCX to PDF for preview
+            fetch(`convert_to_pdf.php?path=${encodeURIComponent(path)}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.pdf_path) {
+                        documentPreview.src = data.pdf_path;
+                        documentPreview.style.display = 'block';
+                        previewMessage.style.display = 'none';
+                    } else {
+                        documentPreview.style.display = 'none';
+                        previewMessage.style.display = 'block';
+                    }
+                    downloadLink.href = path;
+                    downloadLink.download = title + '.' + ext;
+                    previewModal.classList.add('active');
+                })
+                .catch(() => {
+                    documentPreview.style.display = 'none';
+                    previewMessage.style.display = 'block';
+                    downloadLink.href = path;
+                    downloadLink.download = title + '.' + ext;
+                    previewModal.classList.add('active');
+                });
         } else {
             documentPreview.style.display = 'none';
             previewMessage.style.display = 'block';
+            downloadLink.href = path;
+            downloadLink.download = title + '.' + ext;
+            previewModal.classList.add('active');
         }
-        downloadLink.href = path;
-        downloadLink.download = title + '.' + ext;
-        previewModal.classList.add('active');
     }
 });
 
