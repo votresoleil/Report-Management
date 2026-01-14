@@ -481,34 +481,39 @@ const searchInput = document.getElementById('searchInput');
 const reportsList = document.querySelector('.reports-list');
 
 searchInput.addEventListener('input', function() {
-    const query = this.value;
-    fetch(`search_reports.php?search=${encodeURIComponent(query)}`)
-        .then(response => response.json())
-        .then(data => {
-            reportsList.innerHTML = '';
-            if (data.length === 0) {
-                reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No recent reports found.</p></div>';
-            } else {
-                data.forEach(r => {
-                    const ext = r.local_path.split('.').pop().toLowerCase();
-                    const card = `
-                        <div class="report-card">
-                            <div class="report-info">
-                                <i class="fas fa-file-alt"></i>
-                                <div>
-                                    <span class="report-title">${r.report_title}</span>
-                                    <span class="report-meta">Uploaded by ${r.full_name} on ${new Date(r.uploaded_at).toLocaleDateString()} | Type: ${ext.toUpperCase()}</span>
+    const query = this.value.trim();
+    if (query === '') {
+        // Reload recent reports
+        location.reload();
+    } else {
+        fetch(`search_reports.php?search=${encodeURIComponent(query)}`)
+            .then(response => response.json())
+            .then(data => {
+                reportsList.innerHTML = '';
+                if (data.reports.length === 0) {
+                    reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found.</p></div>';
+                } else {
+                    data.reports.forEach(r => {
+                        const ext = r.local_path.split('.').pop().toLowerCase();
+                        const card = `
+                            <div class="report-card">
+                                <div class="report-info">
+                                    <i class="fas fa-file-alt"></i>
+                                    <div>
+                                        <span class="report-title">${r.report_title}</span>
+                                        <span class="report-meta">Uploaded by ${r.full_name} on ${new Date(r.uploaded_at).toLocaleDateString()} | Type: ${ext.toUpperCase()}</span>
+                                    </div>
+                                </div>
+                                <div class="report-actions">
+                                    <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}"><i class="fas fa-eye"></i></button>
                                 </div>
                             </div>
-                            <div class="report-actions">
-                                <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}"><i class="fas fa-eye"></i></button>
-                            </div>
-                        </div>
-                    `;
-                    reportsList.innerHTML += card;
-                });
-            }
-        });
+                        `;
+                        reportsList.innerHTML += card;
+                    });
+                }
+            });
+    }
 });
 
 <?php if ($selected_date): ?>
