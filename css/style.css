@@ -1164,6 +1164,24 @@ body {
     text-decoration: underline;
 }
 
+.view-btn {
+    margin-left: 12px;
+    color: #1f8f5f;
+    font-size: 15px;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.view-btn:hover {
+    text-decoration: underline;
+}
+
+.view-btn i {
+    color: #1f8f5f;
+}
+
 
 /* App Logo */
 .app-logo {
