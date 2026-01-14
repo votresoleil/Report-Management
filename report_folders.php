@@ -201,13 +201,9 @@ if ($year && $month) {
     </div>
 </div>
 
-<div id="successModal">
+<div id="successNotification">
     <div class="modal-box">
-        <h2>Success</h2>
         <p id="successMessage"></p>
-        <div style="text-align: center; margin-top: 20px;">
-            <button id="closeSuccess" class="btn-primary">OK</button>
-        </div>
     </div>
 </div>
 
@@ -234,9 +230,8 @@ const cancelArchive = document.getElementById('cancelArchive');
 const deleteModal = document.getElementById('deleteModal');
 const confirmDelete = document.getElementById('confirmDelete');
 const cancelDelete = document.getElementById('cancelDelete');
-const successModal = document.getElementById('successModal');
+const successNotification = document.getElementById('successNotification');
 const successMessage = document.getElementById('successMessage');
-const closeSuccess = document.getElementById('closeSuccess');
 
 let archiveId = null;
 let deleteId = null;
@@ -276,13 +271,17 @@ confirmArchive.addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
-                    successModal.classList.add('active');
+                    successNotification.classList.add('active');
                     archiveModal.classList.remove('active');
                     // Remove the archived report card
                     const card = document.querySelector(`.archive-btn[data-id="${archiveId}"]`).closest('.report-card');
                     if (card) card.remove();
                     // Reload reports
                     loadReports('', 1);
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        successNotification.classList.remove('active');
+                    }, 3000);
                 } else {
                     alert(data.message);
                 }
@@ -310,13 +309,17 @@ confirmDelete.addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
-                    successModal.classList.add('active');
+                    successNotification.classList.add('active');
                     deleteModal.classList.remove('active');
                     // Remove the deleted report card
                     const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
                     if (card) card.remove();
                     // Reload reports
                     loadReports('', 1);
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        successNotification.classList.remove('active');
+                    }, 3000);
                 } else {
                     alert(data.message);
                 }
@@ -337,15 +340,6 @@ deleteModal.addEventListener('click', (e) => {
     }
 });
 
-closeSuccess.addEventListener('click', () => {
-    successModal.classList.remove('active');
-});
-
-successModal.addEventListener('click', (e) => {
-    if (e.target === successModal) {
-        successModal.classList.remove('active');
-    }
-});
 
 const searchInput = document.getElementById('searchInput');
 const reportsList = document.getElementById('reportsList');

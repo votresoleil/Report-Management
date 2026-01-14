@@ -145,13 +145,13 @@ if ($year && $month) {
                                              <i class="fas fa-eye"></i>
                                          </button>
                                          <?php if (isAdmin()): ?>
-                                             <a href="#" class="restore-btn" data-id="<?= $r['report_id'] ?>" title="Restore" onclick="return false;">
-                                                 <i class="fas fa-undo"></i>
-                                             </a>
-                                             <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Are you sure you want to delete?')">
-                                                <i class="fas fa-trash"></i>
-                                            </a>
-                                         <?php endif; ?>
+                                              <button class="restore-btn" data-id="<?= $r['report_id'] ?>" title="Restore">
+                                                  <i class="fas fa-undo"></i>
+                                              </button>
+                                              <button class="delete-btn danger" data-id="<?= $r['report_id'] ?>" title="Delete">
+                                                 <i class="fas fa-trash"></i>
+                                             </button>
+                                          <?php endif; ?>
                                      </div>
                                  </div>
                              <?php endforeach; ?>
@@ -200,13 +200,9 @@ if ($year && $month) {
              </div>
          </div>
 
-         <div id="successModal">
+         <div id="successNotification">
              <div class="modal-box">
-                 <h2>Success</h2>
                  <p id="successMessage"></p>
-                 <div style="text-align: center; margin-top: 20px;">
-                     <button id="closeSuccess" class="btn-primary">OK</button>
-                 </div>
              </div>
          </div>
          
@@ -303,9 +299,8 @@ const cancelRestore = document.getElementById('cancelRestore');
 const deleteModal = document.getElementById('deleteModal');
 const confirmDelete = document.getElementById('confirmDelete');
 const cancelDelete = document.getElementById('cancelDelete');
-const successModal = document.getElementById('successModal');
+const successNotification = document.getElementById('successNotification');
 const successMessage = document.getElementById('successMessage');
-const closeSuccess = document.getElementById('closeSuccess');
 
 let restoreId = null;
 let deleteId = null;
@@ -330,13 +325,17 @@ confirmRestore.addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
-                    successModal.classList.add('active');
+                    successNotification.classList.add('active');
                     restoreModal.classList.remove('active');
                     // Remove the restored report card
                     const card = document.querySelector(`.restore-btn[data-id="${restoreId}"]`).closest('.report-card');
                     if (card) card.remove();
                     // Reload reports
                     loadReports('', 1);
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        successNotification.classList.remove('active');
+                    }, 3000);
                 } else {
                     alert(data.message);
                 }
@@ -364,13 +363,17 @@ confirmDelete.addEventListener('click', () => {
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
-                    successModal.classList.add('active');
+                    successNotification.classList.add('active');
                     deleteModal.classList.remove('active');
                     // Remove the deleted report card
                     const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
                     if (card) card.remove();
                     // Reload reports
                     loadReports('', 1);
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        successNotification.classList.remove('active');
+                    }, 3000);
                 } else {
                     alert(data.message);
                 }
@@ -391,15 +394,6 @@ deleteModal.addEventListener('click', (e) => {
     }
 });
 
-closeSuccess.addEventListener('click', () => {
-    successModal.classList.remove('active');
-});
-
-successModal.addEventListener('click', (e) => {
-    if (e.target === successModal) {
-        successModal.classList.remove('active');
-    }
-});
 
 const searchInput = document.getElementById('searchInput');
 const reportsList = document.getElementById('reportsList');

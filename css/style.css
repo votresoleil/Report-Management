@@ -931,8 +931,38 @@ body {
 #archiveModal.active,
 #restoreModal.active,
 #deleteModal.active,
-#successModal.active {
+#successModal.active,
+#successNotification.active {
     display: flex;
+}
+
+/* Success notification for archives */
+#successNotification {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1002;
+    display: none;
+    justify-content: center;
+    align-items: flex-start;
+    padding-top: 20px;
+}
+
+#successNotification.active {
+    display: flex;
+}
+
+#successNotification .modal-box {
+    background: #1f8f5f;
+    color: white;
+    border-radius: 10px;
+    padding: 15px 20px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    text-align: left;
+    max-width: 400px;
+    width: 100%;
+    position: relative;
 }
 
 #uploadSuccessModal .modal-box,
@@ -1181,6 +1211,42 @@ body {
 
 .view-btn i {
     color: #1f8f5f;
+}
+
+.archive-btn, .restore-btn {
+    margin-left: 12px;
+    color: #1f8f5f;
+    font-size: 15px;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.delete-btn.danger {
+    margin-left: 12px;
+    color: #c0392b;
+    font-size: 15px;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.archive-btn:hover, .restore-btn:hover {
+    text-decoration: underline;
+}
+
+.delete-btn.danger:hover {
+    text-decoration: underline;
+}
+
+.archive-btn i, .restore-btn i {
+    color: #1f8f5f;
+}
+
+.delete-btn.danger i {
+    color: #c0392b;
 }
 
 
