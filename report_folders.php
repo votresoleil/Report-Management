@@ -78,6 +78,12 @@ if ($year && $month) {
                     <p><?= $count ?> reports</p>
                 </div>
             <?php endforeach; ?>
+            <?php if (empty($years)): ?>
+                <div class="no-reports" style="grid-column: 1 / -1;">
+                    <i class="fas fa-file-alt"></i>
+                    <p>No reports found.</p>
+                </div>
+            <?php endif; ?>
             </div>
             <div id="monthsPanel" style="display: none;">
                 <h3 id="monthsTitle"></h3>
@@ -116,9 +122,9 @@ if ($year && $month) {
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         <?php if (isAdmin()): ?>
-                                            <button class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive">
-                                                <i class="fas fa-archive"></i>
-                                            </button>
+                                            <a href="#" class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive" onclick="return false;">
+                                                <i class="fas fa-file-archive"></i>
+                                            </a>
                                             <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Delete?')">
                                                 <i class="fas fa-trash"></i>
                                             </a>

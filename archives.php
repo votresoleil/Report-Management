@@ -79,6 +79,12 @@ if ($year && $month) {
                      <p><?= $count ?> reports</p>
                  </div>
              <?php endforeach; ?>
+             <?php if (empty($years)): ?>
+                 <div class="no-reports" style="grid-column: 1 / -1;">
+                     <i class="fas fa-file-alt"></i>
+                     <p>No reports found.</p>
+                 </div>
+             <?php endif; ?>
              </div>
              <div id="monthsPanel" style="display: none;">
                  <h3 id="monthsTitle"></h3>
@@ -117,12 +123,12 @@ if ($year && $month) {
                                              <i class="fas fa-eye"></i>
                                          </a>
                                          <?php if (isAdmin()): ?>
-                                             <button class="restore-btn" data-id="<?= $r['report_id'] ?>" title="Restore">
+                                             <a href="#" class="restore-btn" data-id="<?= $r['report_id'] ?>" title="Restore" onclick="return false;">
                                                  <i class="fas fa-undo"></i>
-                                             </button>
-                                             <button class="delete-btn danger" data-id="<?= $r['report_id'] ?>" title="Delete">
-                                                 <i class="fas fa-trash"></i>
-                                             </button>
+                                             </a>
+                                             <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Are you sure you want to delete?')">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
                                          <?php endif; ?>
                                      </div>
                                  </div>
@@ -155,6 +161,7 @@ if ($year && $month) {
                  </div>
              </div>
          </div>
+
      </main>
 </div>
 
@@ -309,12 +316,12 @@ if (searchInput && reportsList) {
                         `;
                         if (isAdmin) {
                             actions += `
-                                <button class="restore-btn" data-id="${r.report_id}" title="Restore">
+                                <a href="#" class="restore-btn" data-id="${r.report_id}" title="Restore" onclick="return false;">
                                     <i class="fas fa-undo"></i>
-                                </button>
-                                <button class="delete-btn danger" data-id="${r.report_id}" title="Delete">
+                                </a>
+                                <a href="#" class="delete-btn danger" data-id="${r.report_id}" title="Delete" onclick="return false;">
                                     <i class="fas fa-trash"></i>
-                                </button>
+                                </a>
                             `;
                         }
                         const card = `

@@ -937,7 +937,9 @@ body {
 #uploadSuccessModal .modal-box,
 #activitySuccessModal .modal-box,
 #selectDateModal .modal-box,
-#archiveModal .modal-box {
+#archiveModal .modal-box,
+#restoreModal .modal-box,
+#deleteModal .modal-box {
     background: white;
     color: black;
     border-radius: 12px;
