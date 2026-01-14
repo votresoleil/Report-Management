@@ -2,7 +2,12 @@
 require 'config/db.php';
 require 'config/auth.php';
 
-if (!isAdmin()) die("Access denied.");
+header('Content-Type: application/json');
+
+if (!isAdmin()) {
+    echo json_encode(['success' => false, 'message' => 'Access denied.']);
+    exit;
+}
 
 $id = $_GET['id'];
 
@@ -22,6 +27,8 @@ if ($file) {
         'DELETE',
         'Deleted report ID ' . $id
     ]);
+    echo json_encode(['success' => true, 'message' => 'Report deleted successfully.']);
+} else {
+    echo json_encode(['success' => false, 'message' => 'Report not found.']);
 }
-
-header("Location: dashboard.php");
+exit;

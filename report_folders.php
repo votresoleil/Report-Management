@@ -6,6 +6,9 @@ $active_view = 'folders';
 $year = $_GET['year'] ?? null;
 $month = $_GET['month'] ?? null;
 $search = $_GET['search'] ?? '';
+$page = $_GET['page'] ?? 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
 $months = [];
 
 // Show folder overview - years with reports
@@ -40,9 +43,28 @@ if ($year && $month) {
         JOIN users u ON r.uploaded_by = u.user_id
         WHERE r.status = 'active' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
         ORDER BY r.report_id DESC
+        LIMIT ? OFFSET ?
     ");
-    $stmt->execute([$year, $month, "%$search%"]);
+    $stmt->bindParam(1, $year);
+    $stmt->bindParam(2, $month);
+    $stmt->bindParam(3, $searchParam, PDO::PARAM_STR);
+    $stmt->bindParam(4, $limit, PDO::PARAM_INT);
+    $stmt->bindParam(5, $offset, PDO::PARAM_INT);
+    $searchParam = "%$search%";
+    $stmt->execute();
     $reports = $stmt->fetchAll();
+
+    // Get total count
+    $countStmt = $pdo->prepare("
+        SELECT COUNT(*) as total
+        FROM reports r
+        WHERE r.status = 'active' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
+    ");
+    $countStmt->bindParam(1, $year);
+    $countStmt->bindParam(2, $month);
+    $countStmt->bindParam(3, $searchParam, PDO::PARAM_STR);
+    $countStmt->execute();
+    $total = $countStmt->fetch()['total'];
 }
 ?>
 <!DOCTYPE html>
@@ -122,18 +144,34 @@ if ($year && $month) {
                                             <i class="fas fa-eye"></i>
                                         </button>
                                         <?php if (isAdmin()): ?>
-                                            <a href="#" class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive" onclick="return false;">
+                                            <button class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive">
                                                 <i class="fas fa-file-archive"></i>
-                                            </a>
-                                            <a href="delete_report.php?id=<?= $r['report_id'] ?>" class="danger" title="Delete" onclick="return confirm('Delete?')">
+                                            </button>
+                                            <button class="delete-btn danger" data-id="<?= $r['report_id'] ?>" title="Delete">
                                                 <i class="fas fa-trash"></i>
-                                            </a>
+                                            </button>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
                     </div>
+                    <?php if ($total > 10): ?>
+                    <div class="pagination">
+                        <?php
+                        $totalPages = ceil($total / $limit);
+                        $currentPage = $page;
+                        if ($currentPage > 1): ?>
+                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage - 1 ?>" class="page-btn">&laquo; Previous</a>
+                        <?php endif; ?>
+                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $i ?>" class="page-btn <?= $i == $currentPage ? 'active' : '' ?>"><?= $i ?></a>
+                        <?php endfor; ?>
+                        <?php if ($currentPage < $totalPages): ?>
+                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage + 1 ?>" class="page-btn">Next &raquo;</a>
+                        <?php endif; ?>
+                    </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -148,6 +186,27 @@ if ($year && $month) {
         <div style="text-align: center; margin-top: 20px;">
             <button id="confirmArchive" class="btn-primary" style="width: 100px;">Archive</button>
             <button id="cancelArchive" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="deleteModal">
+    <div class="modal-box">
+        <h2>Confirm Delete</h2>
+        <p>Are you sure you want to delete this report? This action cannot be undone.</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="confirmDelete" class="btn-primary" style="width: 100px; background: #c0392b;">Delete</button>
+            <button id="cancelDelete" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="successModal">
+    <div class="modal-box">
+        <h2>Success</h2>
+        <p id="successMessage"></p>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="closeSuccess" class="btn-primary">OK</button>
         </div>
     </div>
 </div>
@@ -172,8 +231,15 @@ if ($year && $month) {
 const archiveModal = document.getElementById('archiveModal');
 const confirmArchive = document.getElementById('confirmArchive');
 const cancelArchive = document.getElementById('cancelArchive');
+const deleteModal = document.getElementById('deleteModal');
+const confirmDelete = document.getElementById('confirmDelete');
+const cancelDelete = document.getElementById('cancelDelete');
+const successModal = document.getElementById('successModal');
+const successMessage = document.getElementById('successMessage');
+const closeSuccess = document.getElementById('closeSuccess');
 
 let archiveId = null;
+let deleteId = null;
 
 
 const monthModal = document.getElementById('monthModal');
@@ -196,11 +262,32 @@ document.addEventListener('click', (e) => {
         archiveId = btn.dataset.id;
         archiveModal.classList.add('active');
     }
+    if (e.target.closest('.delete-btn')) {
+        const btn = e.target.closest('.delete-btn');
+        deleteId = btn.dataset.id;
+        deleteModal.classList.add('active');
+    }
 });
 
 confirmArchive.addEventListener('click', () => {
     if (archiveId) {
-        window.location.href = `archive_report.php?id=${archiveId}`;
+        fetch(`archive_report.php?id=${archiveId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message;
+                    successModal.classList.add('active');
+                    archiveModal.classList.remove('active');
+                    // Remove the archived report card
+                    const card = document.querySelector(`.archive-btn[data-id="${archiveId}"]`).closest('.report-card');
+                    if (card) card.remove();
+                    // Reload reports
+                    loadReports('', 1);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('Error archiving report.'));
     }
 });
 
@@ -216,53 +303,123 @@ archiveModal.addEventListener('click', (e) => {
     }
 });
 
+confirmDelete.addEventListener('click', () => {
+    if (deleteId) {
+        fetch(`delete_report.php?id=${deleteId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message;
+                    successModal.classList.add('active');
+                    deleteModal.classList.remove('active');
+                    // Remove the deleted report card
+                    const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
+                    if (card) card.remove();
+                    // Reload reports
+                    loadReports('', 1);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('Error deleting report.'));
+    }
+});
+
+cancelDelete.addEventListener('click', () => {
+    deleteModal.classList.remove('active');
+    deleteId = null;
+});
+
+deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+        deleteModal.classList.remove('active');
+        deleteId = null;
+    }
+});
+
+closeSuccess.addEventListener('click', () => {
+    successModal.classList.remove('active');
+});
+
+successModal.addEventListener('click', (e) => {
+    if (e.target === successModal) {
+        successModal.classList.remove('active');
+    }
+});
+
 const searchInput = document.getElementById('searchInput');
 const reportsList = document.getElementById('reportsList');
 const isAdmin = <?= isAdmin() ? 'true' : 'false' ?>;
+let currentPage = 1;
+
+function loadReports(query, page = 1) {
+    const year = <?= json_encode($year) ?>;
+    const month = <?= json_encode($month) ?>;
+    fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+            reportsList.innerHTML = '';
+            if (data.reports.length === 0) {
+                reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
+            } else {
+                data.reports.forEach(r => {
+                    let actions = `
+                        <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    `;
+                    if (isAdmin) {
+                        actions += `
+                            <button class="archive-btn" data-id="${r.report_id}" title="Archive">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                            <button class="delete-btn danger" data-id="${r.report_id}" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        `;
+                    }
+                    const card = `
+                        <div class="report-card">
+                            <div class="report-info">
+                                <i class="fas fa-file-alt"></i>
+                                <span>${r.report_title}</span>
+                            </div>
+                            <div class="report-actions">
+                                ${actions}
+                            </div>
+                        </div>
+                    `;
+                    reportsList.innerHTML += card;
+                });
+            }
+            // Add pagination if total > 10
+            const paginationContainer = document.querySelector('.pagination');
+            if (paginationContainer) {
+                paginationContainer.remove();
+            }
+            if (data.total > 10) {
+                const totalPages = Math.ceil(data.total / 10);
+                let paginationHTML = '<div class="pagination">';
+                if (page > 1) {
+                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page - 1})">&laquo; Previous</button>`;
+                }
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadReports('${query}', ${i})">${i}</button>`;
+                }
+                if (page < totalPages) {
+                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page + 1})">Next &raquo;</button>`;
+                }
+                paginationHTML += '</div>';
+                reportsList.insertAdjacentHTML('afterend', paginationHTML);
+            }
+        });
+}
 
 if (searchInput && reportsList) {
     searchInput.addEventListener('input', function() {
         const query = this.value;
-        const year = <?= json_encode($year) ?>;
-        const month = <?= json_encode($month) ?>;
-        fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}`)
-            .then(response => response.json())
-            .then(data => {
-                reportsList.innerHTML = '';
-                if (data.length === 0) {
-                    reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
-                } else {
-                    data.forEach(r => {
-                        let actions = `
-                            <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        `;
-                        if (isAdmin) {
-                            actions += `
-                                <button class="archive-btn" data-id="${r.report_id}" title="Archive">
-                                    <i class="fas fa-archive"></i>
-                                </button>
-                                <a href="delete_report.php?id=${r.report_id}" class="danger" title="Delete" onclick="return confirm('Delete?')">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            `;
-                        }
-                        const card = `
-                            <div class="report-card">
-                                <div class="report-info">
-                                    <i class="fas fa-file-alt"></i>
-                                    <span>${r.report_title}</span>
-                                </div>
-                                <div class="report-actions">
-                                    ${actions}
-                                </div>
-                            </div>
-                        `;
-                        reportsList.innerHTML += card;
-                    });
-                }
-            });
+        currentPage = 1;
+        loadReports(query, currentPage);
     });
 }
 

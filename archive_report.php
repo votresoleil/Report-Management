@@ -2,13 +2,17 @@
 require 'config/db.php';
 require 'config/auth.php';
 
+header('Content-Type: application/json');
+
 if (!isAdmin()) {
-    die("Access denied.");
+    echo json_encode(['success' => false, 'message' => 'Access denied.']);
+    exit;
 }
 
 $id = $_GET['id'] ?? null;
 if (!$id) {
-    die("Invalid ID.");
+    echo json_encode(['success' => false, 'message' => 'Invalid ID.']);
+    exit;
 }
 
 $stmt = $pdo->prepare("UPDATE reports SET status = 'archived' WHERE report_id = ?");
@@ -18,6 +22,6 @@ $stmt->execute([$id]);
 $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
 $log->execute([$_SESSION['user_id'], 'ARCHIVE', 'Archived report ID: ' . $id]);
 
-header('Location: dashboard.php?view=folders');
+echo json_encode(['success' => true, 'message' => 'Report archived successfully.']);
 exit;
 ?>

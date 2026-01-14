@@ -6,6 +6,9 @@ $active_view = 'archives';
 $year = $_GET['year'] ?? null;
 $month = $_GET['month'] ?? null;
 $search = $_GET['search'] ?? '';
+$page = $_GET['page'] ?? 1;
+$limit = 10;
+$offset = ($page - 1) * $limit;
 
 // Show folder overview - years with archived reports
 $years = [];
@@ -39,9 +42,28 @@ if ($year && $month) {
         JOIN users u ON r.uploaded_by = u.user_id
         WHERE r.status = 'archived' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
         ORDER BY r.report_id DESC
+        LIMIT ? OFFSET ?
     ");
-    $stmt->execute([$year, $month, "%$search%"]);
+    $stmt->bindParam(1, $year);
+    $stmt->bindParam(2, $month);
+    $stmt->bindParam(3, $searchParam, PDO::PARAM_STR);
+    $stmt->bindParam(4, $limit, PDO::PARAM_INT);
+    $stmt->bindParam(5, $offset, PDO::PARAM_INT);
+    $searchParam = "%$search%";
+    $stmt->execute();
     $reports = $stmt->fetchAll();
+
+    // Get total count
+    $countStmt = $pdo->prepare("
+        SELECT COUNT(*) as total
+        FROM reports r
+        WHERE r.status = 'archived' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
+    ");
+    $countStmt->bindParam(1, $year);
+    $countStmt->bindParam(2, $month);
+    $countStmt->bindParam(3, $searchParam, PDO::PARAM_STR);
+    $countStmt->execute();
+    $total = $countStmt->fetch()['total'];
 }
 ?>
 <!DOCTYPE html>
@@ -135,6 +157,22 @@ if ($year && $month) {
                              <?php endforeach; ?>
                          <?php endif; ?>
                      </div>
+                     <?php if ($total > 10): ?>
+                     <div class="pagination">
+                         <?php
+                         $totalPages = ceil($total / $limit);
+                         $currentPage = $page;
+                         if ($currentPage > 1): ?>
+                             <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage - 1 ?>" class="page-btn">&laquo; Previous</a>
+                         <?php endif; ?>
+                         <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                             <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $i ?>" class="page-btn <?= $i == $currentPage ? 'active' : '' ?>"><?= $i ?></a>
+                         <?php endfor; ?>
+                         <?php if ($currentPage < $totalPages): ?>
+                             <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage + 1 ?>" class="page-btn">Next &raquo;</a>
+                         <?php endif; ?>
+                     </div>
+                     <?php endif; ?>
                  </div>
              </div>
          </div>
@@ -158,6 +196,16 @@ if ($year && $month) {
                  <div style="text-align: center; margin-top: 20px;">
                      <button id="confirmDelete" class="btn-primary" style="width: 100px; background: #c0392b;">Delete</button>
                      <button id="cancelDelete" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+                 </div>
+             </div>
+         </div>
+
+         <div id="successModal">
+             <div class="modal-box">
+                 <h2>Success</h2>
+                 <p id="successMessage"></p>
+                 <div style="text-align: center; margin-top: 20px;">
+                     <button id="closeSuccess" class="btn-primary">OK</button>
                  </div>
              </div>
          </div>
@@ -255,6 +303,9 @@ const cancelRestore = document.getElementById('cancelRestore');
 const deleteModal = document.getElementById('deleteModal');
 const confirmDelete = document.getElementById('confirmDelete');
 const cancelDelete = document.getElementById('cancelDelete');
+const successModal = document.getElementById('successModal');
+const successMessage = document.getElementById('successMessage');
+const closeSuccess = document.getElementById('closeSuccess');
 
 let restoreId = null;
 let deleteId = null;
@@ -274,7 +325,23 @@ document.addEventListener('click', (e) => {
 
 confirmRestore.addEventListener('click', () => {
     if (restoreId) {
-        window.location.href = `restore_report.php?id=${restoreId}`;
+        fetch(`restore_report.php?id=${restoreId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message;
+                    successModal.classList.add('active');
+                    restoreModal.classList.remove('active');
+                    // Remove the restored report card
+                    const card = document.querySelector(`.restore-btn[data-id="${restoreId}"]`).closest('.report-card');
+                    if (card) card.remove();
+                    // Reload reports
+                    loadReports('', 1);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('Error restoring report.'));
     }
 });
 
@@ -292,7 +359,23 @@ restoreModal.addEventListener('click', (e) => {
 
 confirmDelete.addEventListener('click', () => {
     if (deleteId) {
-        window.location.href = `delete_report.php?id=${deleteId}`;
+        fetch(`delete_report.php?id=${deleteId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message;
+                    successModal.classList.add('active');
+                    deleteModal.classList.remove('active');
+                    // Remove the deleted report card
+                    const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
+                    if (card) card.remove();
+                    // Reload reports
+                    loadReports('', 1);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('Error deleting report.'));
     }
 });
 
@@ -308,53 +391,89 @@ deleteModal.addEventListener('click', (e) => {
     }
 });
 
+closeSuccess.addEventListener('click', () => {
+    successModal.classList.remove('active');
+});
+
+successModal.addEventListener('click', (e) => {
+    if (e.target === successModal) {
+        successModal.classList.remove('active');
+    }
+});
+
 const searchInput = document.getElementById('searchInput');
 const reportsList = document.getElementById('reportsList');
 const isAdmin = <?= isAdmin() ? 'true' : 'false' ?>;
+let currentPage = 1;
+
+function loadReports(query, page = 1) {
+    const year = <?= json_encode($year) ?>;
+    const month = <?= json_encode($month) ?>;
+    fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&status=archived&page=${page}`)
+        .then(response => response.json())
+        .then(data => {
+            reportsList.innerHTML = '';
+            if (data.reports.length === 0) {
+                reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
+            } else {
+                data.reports.forEach(r => {
+                    let actions = `
+                        <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    `;
+                    if (isAdmin) {
+                        actions += `
+                            <a href="#" class="restore-btn" data-id="${r.report_id}" title="Restore" onclick="return false;">
+                                <i class="fas fa-undo"></i>
+                            </a>
+                            <a href="#" class="delete-btn danger" data-id="${r.report_id}" title="Delete" onclick="return false;">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        `;
+                    }
+                    const card = `
+                        <div class="report-card">
+                            <div class="report-info">
+                                <i class="fas fa-file-alt"></i>
+                                <span>${r.report_title}</span>
+                            </div>
+                            <div class="report-actions">
+                                ${actions}
+                            </div>
+                        </div>
+                    `;
+                    reportsList.innerHTML += card;
+                });
+            }
+            // Add pagination if total > 10
+            const paginationContainer = document.querySelector('.pagination');
+            if (paginationContainer) {
+                paginationContainer.remove();
+            }
+            if (data.total > 10) {
+                const totalPages = Math.ceil(data.total / 10);
+                let paginationHTML = '<div class="pagination">';
+                if (page > 1) {
+                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page - 1})">&laquo; Previous</button>`;
+                }
+                for (let i = 1; i <= totalPages; i++) {
+                    paginationHTML += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadReports('${query}', ${i})">${i}</button>`;
+                }
+                if (page < totalPages) {
+                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page + 1})">Next &raquo;</button>`;
+                }
+                paginationHTML += '</div>';
+                reportsList.insertAdjacentHTML('afterend', paginationHTML);
+            }
+        });
+}
 
 if (searchInput && reportsList) {
     searchInput.addEventListener('input', function() {
         const query = this.value;
-        const year = <?= json_encode($year) ?>;
-        const month = <?= json_encode($month) ?>;
-        fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&status=archived`)
-            .then(response => response.json())
-            .then(data => {
-                reportsList.innerHTML = '';
-                if (data.length === 0) {
-                    reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
-                } else {
-                    data.forEach(r => {
-                        let actions = `
-                            <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
-                                <i class="fas fa-eye"></i>
-                            </button>
-                        `;
-                        if (isAdmin) {
-                            actions += `
-                                <a href="#" class="restore-btn" data-id="${r.report_id}" title="Restore" onclick="return false;">
-                                    <i class="fas fa-undo"></i>
-                                </a>
-                                <a href="#" class="delete-btn danger" data-id="${r.report_id}" title="Delete" onclick="return false;">
-                                    <i class="fas fa-trash"></i>
-                                </a>
-                            `;
-                        }
-                        const card = `
-                            <div class="report-card">
-                                <div class="report-info">
-                                    <i class="fas fa-file-alt"></i>
-                                    <span>${r.report_title}</span>
-                                </div>
-                                <div class="report-actions">
-                                    ${actions}
-                                </div>
-                            </div>
-                        `;
-                        reportsList.innerHTML += card;
-                    });
-                }
-            });
+        currentPage = 1;
+        loadReports(query, currentPage);
     });
 }
 
