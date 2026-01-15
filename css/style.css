@@ -1314,3 +1314,37 @@ body {
     background: #023020;
     font-weight: bold;
 }
+
+/* Activity Table */
+.activity-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.activity-table th, .activity-table td {
+    padding: 10px;
+    text-align: left;
+    border: 1px solid #ddd;
+}
+
+.activity-table th {
+    background-color: #f4f4f4;
+    font-weight: bold;
+}
+
+/* Pagination Buttons */
+.pagination-btn {
+    padding: 8px 16px;
+    background: #1f8f5f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.pagination-btn:hover {
+    background: #34c38f;
+}
