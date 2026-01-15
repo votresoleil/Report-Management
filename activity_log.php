@@ -82,6 +82,7 @@ $status_map = [
                             <th>Action</th>
                             <th>Status</th>
                             <th>Time</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -100,6 +101,7 @@ $status_map = [
                                 <td><?= htmlspecialchars($action) ?></td>
                                 <td><?= htmlspecialchars($status) ?></td>
                                 <td><?= htmlspecialchars($log['created_at']) ?></td>
+                                <td><button class="delete-btn danger" data-id="<?= htmlspecialchars($log['log_id']) ?>"><i class="fas fa-trash"></i></button></td>
                             </tr>
                         <?php endforeach; ?>
                     </tbody>
@@ -121,6 +123,77 @@ $status_map = [
         </div>
     </main>
 </div>
+
+<div id="deleteModal">
+    <div class="modal-box">
+        <h2>Confirm Delete</h2>
+        <p>Are you sure you want to delete this activity log entry? This action cannot be undone.</p>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="confirmDelete" class="btn-primary" style="width: 100px; background: #c0392b;">Delete</button>
+            <button id="cancelDelete" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="successNotification">
+    <div class="modal-box">
+        <p id="successMessage"></p>
+    </div>
+</div>
+
+<script>
+const deleteModal = document.getElementById('deleteModal');
+const confirmDelete = document.getElementById('confirmDelete');
+const cancelDelete = document.getElementById('cancelDelete');
+const successNotification = document.getElementById('successNotification');
+const successMessage = document.getElementById('successMessage');
+
+let deleteId = null;
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.delete-btn')) {
+        const btn = e.target.closest('.delete-btn');
+        deleteId = btn.dataset.id;
+        deleteModal.classList.add('active');
+    }
+});
+
+confirmDelete.addEventListener('click', () => {
+    if (deleteId) {
+        fetch(`delete_activity.php?id=${deleteId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    successMessage.textContent = data.message;
+                    successNotification.classList.add('active');
+                    deleteModal.classList.remove('active');
+                    // Remove the deleted row
+                    const row = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('tr');
+                    if (row) row.remove();
+                    // Auto-hide after 3 seconds
+                    setTimeout(() => {
+                        successNotification.classList.remove('active');
+                    }, 3000);
+                } else {
+                    alert(data.message);
+                }
+            })
+            .catch(() => alert('Error deleting activity log.'));
+    }
+});
+
+cancelDelete.addEventListener('click', () => {
+    deleteModal.classList.remove('active');
+    deleteId = null;
+});
+
+deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) {
+        deleteModal.classList.remove('active');
+        deleteId = null;
+    }
+});
+</script>
 
 </body>
 </html>
