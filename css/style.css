@@ -1079,6 +1079,7 @@ body {
 
 #addActivityModal .modal-box.large,
 #uploadReportModal .modal-box.large,
+#uploadActivityReportModal .modal-box.large,
 #previewModal .modal-box.large {
     background: white;
     color: black;
@@ -1131,6 +1132,34 @@ body {
     flex-direction: column;
     gap: 10px;
     margin-bottom: 20px;
+}
+
+#uploadActivityReportModal .modal-content {
+    padding: 20px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+#uploadActivityReportModal .modal-header h2 {
+    text-align: center;
+}
+
+#uploadActivityReportModal .modal-content input,
+#uploadActivityReportModal .modal-content select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#uploadActivityReportModal .modal-content input:focus,
+#uploadActivityReportModal .modal-content select:focus {
+    border-color: #1f8f5f;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(31, 143, 95, 0.2);
 }
 
 #addActivityModal .modal-box input,
