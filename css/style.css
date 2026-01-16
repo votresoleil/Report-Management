@@ -1162,6 +1162,15 @@ body {
     box-shadow: 0 0 0 2px rgba(31, 143, 95, 0.2);
 }
 
+.activities-wrapper {
+    display: flex;
+    gap: 20px;
+}
+
+.activity-details, .completed-activities {
+    flex: 1;
+}
+
 #addActivityModal .modal-box input,
 #addActivityModal .modal-box textarea,
 #uploadReportModal .modal-box input,

@@ -23,6 +23,23 @@ $pending = count(array_filter($activities, fn($a) => $a['status'] === 'pending')
 $pendingActivities = array_filter($activities, fn($a) => $a['status'] !== 'completed');
 $completedActivities = array_filter($activities, fn($a) => $a['status'] === 'completed');
 
+// Pagination
+$per_page = 5;
+$pending_page = isset($_GET['pending_page']) ? max(1, (int)$_GET['pending_page']) : 1;
+$completed_page = isset($_GET['completed_page']) ? max(1, (int)$_GET['completed_page']) : 1;
+
+$pending_total = count($pendingActivities);
+$completed_total = count($completedActivities);
+
+$pending_offset = ($pending_page - 1) * $per_page;
+$completed_offset = ($completed_page - 1) * $per_page;
+
+$pending_display = array_slice($pendingActivities, $pending_offset, $per_page);
+$completed_display = array_slice($completedActivities, $completed_offset, $per_page);
+
+$pending_total_pages = ceil($pending_total / $per_page);
+$completed_total_pages = ceil($completed_total / $per_page);
+
 // Upcoming deadlines (next 5)
 $upcoming = array_filter($activities, fn($a) => strtotime($a['start_date']) >= time());
 usort($upcoming, fn($a, $b) => strtotime($a['start_date']) - strtotime($b['start_date']));
@@ -99,48 +116,64 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
                         <?php endif; ?>
                     </div>
                 </div>
-                <div class="activity-details">
-                    <div class="activity-header">
-                        <h3>List of Activities To Do</h3>
-                        <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
-                    </div>
-                    <div class="activity-list">
-                        <?php if (empty($pendingActivities)): ?>
-                            <p>No pending activities.</p>
-                        <?php else: ?>
-                            <?php foreach ($pendingActivities as $act): ?>
-                                <div class="activity-item">
-                                    <span class="status-dot <?= $act['status'] === 'in-progress' ? 'yellow' : 'red' ?>"></span>
-                                    <div class="activity-info">
-                                        <h4><?= htmlspecialchars($act['title']) ?></h4>
-                                        <p>Date: <?= $act['start_date'] ?></p>
-                                        <p><?= htmlspecialchars($act['description']) ?></p>
+                <div class="activities-wrapper">
+                    <div class="activity-details">
+                        <div class="activity-header">
+                            <h3>List of Activities To Do</h3>
+                            <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
+                        </div>
+                        <div class="activity-list">
+                            <?php if (empty($pending_display)): ?>
+                                <p>No pending activities.</p>
+                            <?php else: ?>
+                                <?php foreach ($pending_display as $act): ?>
+                                    <div class="activity-item">
+                                        <span class="status-dot <?= $act['status'] === 'in-progress' ? 'yellow' : 'red' ?>"></span>
+                                        <div class="activity-info">
+                                            <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                            <p>Date: <?= $act['start_date'] ?></p>
+                                            <p><?= htmlspecialchars($act['description']) ?></p>
+                                        </div>
+                                        <button class="check-btn" data-id="<?= $act['id'] ?>" data-status="completed" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
                                     </div>
-                                    <button class="check-btn" data-id="<?= $act['id'] ?>" data-status="completed" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($pending_total_pages > 1): ?>
+                            <div class="pagination">
+                                <?php for ($i = 1; $i <= $pending_total_pages; $i++): ?>
+                                    <a href="?pending_page=<?= $i ?>&completed_page=<?= $completed_page ?>" class="page-btn <?= $i == $pending_page ? 'active' : '' ?>"><?= $i ?></a>
+                                <?php endfor; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
-                </div>
-                <div class="completed-activities">
-                    <div class="activity-header">
-                        <h3>Completed Activities</h3>
-                    </div>
-                    <div class="activity-list">
-                        <?php if (empty($completedActivities)): ?>
-                            <p>No completed activities.</p>
-                        <?php else: ?>
-                            <?php foreach ($completedActivities as $act): ?>
-                                <div class="activity-item">
-                                    <span class="status-dot green"></span>
-                                    <div class="activity-info">
-                                        <h4><?= htmlspecialchars($act['title']) ?></h4>
-                                        <p>Date: <?= $act['start_date'] ?></p>
-                                        <p><?= htmlspecialchars($act['description']) ?></p>
+                    <div class="completed-activities">
+                        <div class="activity-header">
+                            <h3>Completed Activities</h3>
+                        </div>
+                        <div class="activity-list">
+                            <?php if (empty($completed_display)): ?>
+                                <p>No completed activities.</p>
+                            <?php else: ?>
+                                <?php foreach ($completed_display as $act): ?>
+                                    <div class="activity-item">
+                                        <span class="status-dot green"></span>
+                                        <div class="activity-info">
+                                            <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                            <p>Date: <?= $act['start_date'] ?></p>
+                                            <p><?= htmlspecialchars($act['description']) ?></p>
+                                        </div>
+                                        <button class="check-btn completed" data-id="<?= $act['id'] ?>" data-status="in-progress" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
                                     </div>
-                                    <button class="check-btn completed" data-id="<?= $act['id'] ?>" data-status="in-progress" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
-                                </div>
-                            <?php endforeach; ?>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                        <?php if ($completed_total_pages > 1): ?>
+                            <div class="pagination">
+                                <?php for ($i = 1; $i <= $completed_total_pages; $i++): ?>
+                                    <a href="?pending_page=<?= $pending_page ?>&completed_page=<?= $i ?>" class="page-btn <?= $i == $completed_page ? 'active' : '' ?>"><?= $i ?></a>
+                                <?php endfor; ?>
+                            </div>
                         <?php endif; ?>
                     </div>
                 </div>
