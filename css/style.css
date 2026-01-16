@@ -355,6 +355,27 @@ body {
     text-align: center;
 }
 
+.stat-card i {
+    font-size: 36px;
+    margin-bottom: 10px;
+}
+
+.total-icon {
+    color: #00008B;
+}
+
+.completed-icon {
+    color: #023020;
+}
+
+.in-progress-icon {
+    color: #B8860B;
+}
+
+.pending-icon {
+    color: #8B0000;
+}
+
 .stat-card h3 {
     margin: 0 0 10px;
     color: #1f8f5f;
@@ -495,12 +516,59 @@ body {
 /* Calendar */
 .calendar {
     display: flex;
+    flex-direction: column;
     gap: 20px;
 }
 
 .calendar .calendar-view,
 .calendar .upcoming-activities {
     flex: 1;
+}
+
+.upcoming-deadlines {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-bottom: 30px;
+}
+
+.deadline-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.deadline-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px;
+    background: #f9f9f9;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.deadline-content h4 {
+    margin: 0 0 5px;
+    color: #1f8f5f;
+}
+
+.deadline-content p {
+    margin: 0;
+    font-size: 14px;
+    color: #777;
+}
+
+.view-activity {
+    color: #1f8f5f;
+    cursor: pointer;
+    font-size: 18px;
+    margin-left: 10px;
+}
+
+.view-activity:hover {
+    color: #34c38f;
 }
 
 .calendar .day {
@@ -911,7 +979,8 @@ body {
 #previewModal,
 #archiveModal,
 #restoreModal,
-#deleteModal {
+#deleteModal,
+#confirmStatusModal {
     position: fixed;
     inset: 0;
     display: none;
@@ -931,6 +1000,7 @@ body {
 #archiveModal.active,
 #restoreModal.active,
 #deleteModal.active,
+#confirmStatusModal.active,
 #successModal.active,
 #successNotification.active {
     display: flex;

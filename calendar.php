@@ -52,67 +52,69 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
         </div>
         <div class="calendar-section">
             <div class="calendar">
-                <div class="left-column">
-                    <div class="activity-summary">
-                        <h3>Activity Summary</h3>
-                        <div class="stats">
-                            <div class="stat">
-                                <h4>Total Activities</h4>
-                                <p><?= $totalActivities ?></p>
-                            </div>
-                            <div class="stat">
-                                <h4>Completed</h4>
-                                <p><?= $completed ?></p>
-                            </div>
-                            <div class="stat">
-                                <h4>In Progress</h4>
-                                <p><?= $inProgress ?></p>
-                            </div>
-                            <div class="stat">
-                                <h4>Pending</h4>
-                                <p><?= $pending ?></p>
-                            </div>
+                <div class="activity-summary">
+                    <div class="stats">
+                        <div class="stat-card">
+                            <i class="fas fa-tasks total-icon"></i>
+                            <h3>Total Activities</h3>
+                            <p><?= $totalActivities ?></p>
                         </div>
-                    </div>
-                    <div class="activity-details">
-                        <div class="activity-header">
-                            <h3>Activity Details</h3>
-                            <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
+                        <div class="stat-card">
+                            <i class="fas fa-check-circle completed-icon"></i>
+                            <h3>Completed</h3>
+                            <p><?= $completed ?></p>
                         </div>
-                        <div class="activity-list">
-                            <?php if (empty($activities)): ?>
-                                <p>No activities found.</p>
-                            <?php else: ?>
-                                <?php foreach ($activities as $act): ?>
-                                    <div class="activity-item">
-                                        <span class="status-dot <?= $act['status'] === 'completed' ? 'green' : ($act['status'] === 'in-progress' ? 'yellow' : 'red') ?>"></span>
-                                        <div class="activity-info">
-                                            <h4><?= htmlspecialchars($act['title']) ?></h4>
-                                            <p>Date: <?= $act['start_date'] ?></p>
-                                            <p><?= htmlspecialchars($act['description']) ?></p>
-                                        </div>
-                                        <a href="update_activity.php?id=<?= $act['id'] ?>&status=<?= $act['status'] === 'completed' ? 'in-progress' : 'completed' ?>" class="check-btn <?= $act['status'] === 'completed' ? 'completed' : '' ?>"><i class="fas fa-check"></i></a>
-                                    </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
+                        <div class="stat-card">
+                            <i class="fas fa-clock in-progress-icon"></i>
+                            <h3>In Progress</h3>
+                            <p><?= $inProgress ?></p>
+                        </div>
+                        <div class="stat-card">
+                            <i class="fas fa-exclamation-triangle pending-icon"></i>
+                            <h3>Pending</h3>
+                            <p><?= $pending ?></p>
                         </div>
                     </div>
                 </div>
-                <div class="right-column">
-                    <div class="upcoming-deadlines">
-                        <h3>Upcoming Deadlines</h3>
-                        <div class="deadline-list">
-                            <?php if (empty($upcomingDeadlines)): ?>
-                                <p>No upcoming deadlines.</p>
-                            <?php else: ?>
-                                <?php foreach ($upcomingDeadlines as $act): ?>
-                                    <div class="deadline-item">
-                                        <span class="date"><?= $act['start_date'] ?></span>
+                <div class="upcoming-deadlines">
+                    <h3>Upcoming Deadlines</h3>
+                    <div class="deadline-list">
+                        <?php if (empty($upcomingDeadlines)): ?>
+                            <p>No upcoming deadlines.</p>
+                        <?php else: ?>
+                            <?php foreach ($upcomingDeadlines as $act): ?>
+                                <div class="deadline-item">
+                                    <div class="deadline-content">
                                         <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                        <p><?= htmlspecialchars($act['description']) ?> - Due: <?= $act['start_date'] ?></p>
                                     </div>
-                                <?php endforeach; ?>
-                            <?php endif; ?>
-                        </div>
+                                    <i class="fas fa-eye view-activity" data-id="<?= $act['id'] ?>"></i>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="activity-details">
+                    <div class="activity-header">
+                        <h3>Activity Details</h3>
+                        <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
+                    </div>
+                    <div class="activity-list">
+                        <?php if (empty($activities)): ?>
+                            <p>No activities found.</p>
+                        <?php else: ?>
+                            <?php foreach ($activities as $act): ?>
+                                <div class="activity-item">
+                                    <span class="status-dot <?= $act['status'] === 'completed' ? 'green' : ($act['status'] === 'in-progress' ? 'yellow' : 'red') ?>"></span>
+                                    <div class="activity-info">
+                                        <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                        <p>Date: <?= $act['start_date'] ?></p>
+                                        <p><?= htmlspecialchars($act['description']) ?></p>
+                                    </div>
+                                    <button class="check-btn <?= $act['status'] === 'completed' ? 'completed' : '' ?>" data-id="<?= $act['id'] ?>" data-status="<?= $act['status'] === 'completed' ? 'in-progress' : 'completed' ?>" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
                 </div>
             </div>
@@ -156,6 +158,17 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
     </div>
 </div>
 
+<div id="confirmStatusModal">
+    <div class="modal-box">
+        <h2>Confirm Action</h2>
+        <p id="confirmMessage">Mark as Done?</p>
+        <div style="display: flex; gap: 10px; justify-content: center;">
+            <button class="btn-secondary" id="cancelStatus">Cancel</button>
+            <button class="btn-primary" id="confirmStatus">Yes</button>
+        </div>
+    </div>
+</div>
+
 <script>
 const addActivityModal = document.getElementById('addActivityModal');
 const addActivityBtn = document.getElementById('addActivityBtn');
@@ -184,6 +197,39 @@ closeActivityModal.addEventListener('click', () => {
 activitySuccessModal.addEventListener('click', (e) => {
     if(e.target === activitySuccessModal){
         activitySuccessModal.classList.remove('active');
+    }
+});
+
+const confirmStatusModal = document.getElementById('confirmStatusModal');
+const cancelStatus = document.getElementById('cancelStatus');
+const confirmStatus = document.getElementById('confirmStatus');
+const confirmMessage = document.getElementById('confirmMessage');
+let currentUpdateUrl = '';
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.check-btn')) {
+        const btn = e.target.closest('.check-btn');
+        const id = btn.dataset.id;
+        const status = btn.dataset.status;
+        const title = btn.dataset.title;
+        const action = status === 'completed' ? 'Mark as Done?' : 'Mark as In Progress?';
+        confirmMessage.textContent = `${action} "${title}"`;
+        currentUpdateUrl = `update_activity.php?id=${id}&status=${status}`;
+        confirmStatusModal.classList.add('active');
+    }
+});
+
+cancelStatus.addEventListener('click', () => {
+    confirmStatusModal.classList.remove('active');
+});
+
+confirmStatus.addEventListener('click', () => {
+    window.location.href = currentUpdateUrl;
+});
+
+confirmStatusModal.addEventListener('click', (e) => {
+    if (e.target === confirmStatusModal) {
+        confirmStatusModal.classList.remove('active');
     }
 });
 </script>
