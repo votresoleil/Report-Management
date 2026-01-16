@@ -19,6 +19,10 @@ $completed = count(array_filter($activities, fn($a) => $a['status'] === 'complet
 $inProgress = count(array_filter($activities, fn($a) => $a['status'] === 'in-progress'));
 $pending = count(array_filter($activities, fn($a) => $a['status'] === 'pending'));
 
+// Separate activities
+$pendingActivities = array_filter($activities, fn($a) => $a['status'] !== 'completed');
+$completedActivities = array_filter($activities, fn($a) => $a['status'] === 'completed');
+
 // Upcoming deadlines (next 5)
 $upcoming = array_filter($activities, fn($a) => strtotime($a['start_date']) >= time());
 usort($upcoming, fn($a, $b) => strtotime($a['start_date']) - strtotime($b['start_date']));
@@ -89,7 +93,7 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
                                         <h4><?= htmlspecialchars($act['title']) ?></h4>
                                         <p><?= htmlspecialchars($act['description']) ?> - Due: <?= $act['start_date'] ?></p>
                                     </div>
-                                    <i class="fas fa-eye view-activity" data-id="<?= $act['id'] ?>"></i>
+                                    <button class="upload-report-btn" data-id="<?= $act['id'] ?>" data-title="<?= htmlspecialchars($act['title']) ?>" data-description="<?= htmlspecialchars($act['description']) ?>" data-date="<?= $act['start_date'] ?>"><i class="fas fa-upload"></i> Upload Report</button>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -97,22 +101,44 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
                 </div>
                 <div class="activity-details">
                     <div class="activity-header">
-                        <h3>Activity Details</h3>
+                        <h3>List of Activities To Do</h3>
                         <button id="addActivityBtn" class="add-activity-btn"><i class="fas fa-plus"></i> Add Activity</button>
                     </div>
                     <div class="activity-list">
-                        <?php if (empty($activities)): ?>
-                            <p>No activities found.</p>
+                        <?php if (empty($pendingActivities)): ?>
+                            <p>No pending activities.</p>
                         <?php else: ?>
-                            <?php foreach ($activities as $act): ?>
+                            <?php foreach ($pendingActivities as $act): ?>
                                 <div class="activity-item">
-                                    <span class="status-dot <?= $act['status'] === 'completed' ? 'green' : ($act['status'] === 'in-progress' ? 'yellow' : 'red') ?>"></span>
+                                    <span class="status-dot <?= $act['status'] === 'in-progress' ? 'yellow' : 'red' ?>"></span>
                                     <div class="activity-info">
                                         <h4><?= htmlspecialchars($act['title']) ?></h4>
                                         <p>Date: <?= $act['start_date'] ?></p>
                                         <p><?= htmlspecialchars($act['description']) ?></p>
                                     </div>
-                                    <button class="check-btn <?= $act['status'] === 'completed' ? 'completed' : '' ?>" data-id="<?= $act['id'] ?>" data-status="<?= $act['status'] === 'completed' ? 'in-progress' : 'completed' ?>" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
+                                    <button class="check-btn" data-id="<?= $act['id'] ?>" data-status="completed" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
+                                </div>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div class="completed-activities">
+                    <div class="activity-header">
+                        <h3>Completed Activities</h3>
+                    </div>
+                    <div class="activity-list">
+                        <?php if (empty($completedActivities)): ?>
+                            <p>No completed activities.</p>
+                        <?php else: ?>
+                            <?php foreach ($completedActivities as $act): ?>
+                                <div class="activity-item">
+                                    <span class="status-dot green"></span>
+                                    <div class="activity-info">
+                                        <h4><?= htmlspecialchars($act['title']) ?></h4>
+                                        <p>Date: <?= $act['start_date'] ?></p>
+                                        <p><?= htmlspecialchars($act['description']) ?></p>
+                                    </div>
+                                    <button class="check-btn completed" data-id="<?= $act['id'] ?>" data-status="in-progress" data-title="<?= htmlspecialchars($act['title']) ?>"><i class="fas fa-check"></i></button>
                                 </div>
                             <?php endforeach; ?>
                         <?php endif; ?>
@@ -166,6 +192,38 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
         <div style="text-align: center; margin-top: 20px;">
             <button id="confirmStatus" class="btn-primary" style="width: 100px;">Mark as Done</button>
             <button id="cancelStatus" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<div id="uploadActivityReportModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upload Report for Activity</h2>
+            <button class="close-btn" id="closeUploadActivityReportModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form action="upload_report.php" method="POST" enctype="multipart/form-data">
+                <label for="reportTitle">Report Title</label>
+                <input type="text" id="reportTitle" name="title" placeholder="Enter report title" required>
+                <label for="reportFile">Select File</label>
+                <input type="file" id="reportFile" name="report" required>
+                <label for="reportMonth">Month</label>
+                <select id="reportMonth" name="month" required>
+                    <?php for ($m=1; $m<=12; $m++): ?>
+                        <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="reportDay">Day</label>
+                <select id="reportDay" name="day" required>
+                    <?php for ($d=1; $d<=31; $d++): ?>
+                        <option value="<?= $d ?>"><?= $d ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="reportYear">Year</label>
+                <input type="number" id="reportYear" name="year" value="<?= date('Y') ?>" required>
+                <button type="submit" class="btn-primary">Upload</button>
+            </form>
         </div>
     </div>
 </div>
@@ -232,6 +290,33 @@ confirmStatus.addEventListener('click', () => {
 confirmStatusModal.addEventListener('click', (e) => {
     if (e.target === confirmStatusModal) {
         confirmStatusModal.classList.remove('active');
+    }
+});
+
+const uploadActivityReportModal = document.getElementById('uploadActivityReportModal');
+const closeUploadActivityReportModal = document.getElementById('closeUploadActivityReportModal');
+
+closeUploadActivityReportModal.addEventListener('click', () => {
+    uploadActivityReportModal.classList.remove('active');
+});
+
+uploadActivityReportModal.addEventListener('click', (e) => {
+    if (e.target === uploadActivityReportModal) {
+        uploadActivityReportModal.classList.remove('active');
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.upload-report-btn')) {
+        const btn = e.target.closest('.upload-report-btn');
+        const title = btn.dataset.title;
+        const date = btn.dataset.date;
+        document.getElementById('reportTitle').value = title;
+        const dateObj = new Date(date);
+        document.getElementById('reportMonth').value = dateObj.getMonth() + 1;
+        document.getElementById('reportDay').value = dateObj.getDate();
+        document.getElementById('reportYear').value = dateObj.getFullYear();
+        uploadActivityReportModal.classList.add('active');
     }
 });
 </script>
