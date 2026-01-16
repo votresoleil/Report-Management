@@ -162,9 +162,9 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
     <div class="modal-box">
         <h2>Confirm Action</h2>
         <p id="confirmMessage">Mark as Done?</p>
-        <div style="display: flex; gap: 10px; justify-content: center;">
-            <button class="btn-secondary" id="cancelStatus">Cancel</button>
-            <button class="btn-primary" id="confirmStatus">Yes</button>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="confirmStatus" class="btn-primary" style="width: 100px;">Mark as Done</button>
+            <button id="cancelStatus" class="btn-primary" style="width: 100px; margin-left: 10px; background: #ccc; color: #333;">Cancel</button>
         </div>
     </div>
 </div>
@@ -212,8 +212,9 @@ document.addEventListener('click', (e) => {
         const id = btn.dataset.id;
         const status = btn.dataset.status;
         const title = btn.dataset.title;
-        const action = status === 'completed' ? 'Mark as Done?' : 'Mark as In Progress?';
-        confirmMessage.textContent = `${action} "${title}"`;
+        const action = status === 'completed' ? 'Mark as Done' : 'Mark as In Progress';
+        confirmMessage.textContent = `Are you sure you want to ${action.toLowerCase()} "${title}"?`;
+        document.getElementById('confirmStatus').textContent = action;
         currentUpdateUrl = `update_activity.php?id=${id}&status=${status}`;
         confirmStatusModal.classList.add('active');
     }
