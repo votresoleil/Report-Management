@@ -49,12 +49,13 @@ $status_map = [
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Activity Log</title>
+    <title>Activity Log - Report Management</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="icon" href="img/NEECO_banner.png">
 </head>
 <body>
 

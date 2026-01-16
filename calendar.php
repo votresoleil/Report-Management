@@ -28,12 +28,13 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Activity Calendar</title>
+    <title>Activity Calendar - Report Management</title>
 
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+    <link rel="icon" href="img/NEECO_banner.png">
 </head>
 <body>
 
