@@ -1038,6 +1038,7 @@ body {
 #uploadSuccessModal .modal-box,
 #activitySuccessModal .modal-box,
 #selectDateModal .modal-box,
+#confirmStatusModal .modal-box,
 #archiveModal .modal-box,
 #restoreModal .modal-box,
 #deleteModal .modal-box {
