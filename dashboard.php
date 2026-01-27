@@ -28,6 +28,12 @@ $stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? ORDER BY start
 $stmt->execute([$_SESSION['user_id']]);
 $activities = $stmt->fetchAll();
 
+// Upcoming activities (within 2 days)
+$twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
+$stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? AND start_date <= ? AND start_date >= ? AND status != 'completed' ORDER BY start_date");
+$stmt->execute([$_SESSION['user_id'], $twoDaysFromNow, date('Y-m-d')]);
+$upcomingActivities = $stmt->fetchAll();
+
 $selected_date = null;
 if (isset($_SESSION['selected_date'])) {
     $selected_date = $_SESSION['selected_date'];
@@ -106,14 +112,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="header-section">
-            <h2>Main Dashboard</h2>
-            <div class="icons-right">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
+        <?php $page_title = 'Main Dashboard'; include 'header.php'; ?>
 
         <div class="calendar-section">
             <div class="calendar">
@@ -412,7 +411,7 @@ document.addEventListener('click', (e) => {
         const path = btn.dataset.path;
         const title = btn.dataset.title;
         const ext = path.split('.').pop().toLowerCase();
-        if (['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+        if (['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg'].includes(ext)) {
             documentPreview.src = path;
             documentPreview.style.display = 'block';
             previewMessage.style.display = 'none';

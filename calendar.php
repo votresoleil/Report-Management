@@ -64,14 +64,7 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="header-section">
-            <h2>Activity Calendar</h2>
-            <div class="icons-right">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
+        <?php $page_title = 'Activity Calendar'; include 'header.php'; ?>
         <div class="calendar-section">
             <div class="calendar">
                 <div class="activity-summary">

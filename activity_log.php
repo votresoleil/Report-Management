@@ -64,14 +64,7 @@ $status_map = [
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="header-section">
-            <h2>Activity Log</h2>
-            <div class="icons-right">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
+        <?php $page_title = 'Activity Log'; include 'header.php'; ?>
         <div class="content-section">
             <?php if (empty($logs)): ?>
                 <p>No activities found.</p>

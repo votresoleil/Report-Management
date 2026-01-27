@@ -84,12 +84,12 @@ if ($year && $month) {
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="header-section">
-            <h2>Report Folders</h2>
-            <div class="icons-right">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
+        <?php $page_title = 'Report Folders'; include 'header.php'; ?>
+        <div class="panel-header">
+            <h3>Upload Options</h3>
+            <div style="display: flex; gap: 10px;">
+                <button id="uploadReportBtn" class="add-activity-btn"><i class="fas fa-upload"></i> Upload Report</button>
+                <button id="uploadFolderBtn" class="add-activity-btn"><i class="fas fa-folder-plus"></i> Upload Folder</button>
             </div>
         </div>
         <div class="content-section">
@@ -219,6 +219,76 @@ if ($year && $month) {
             <div id="previewMessage" style="display: none; text-align: center; padding: 20px;">Preview not available for this file type. Please use the download button.</div>
             <div style="text-align: center; margin-top: 10px;">
                 <a id="downloadLink" href="" download><button class="btn-primary">Download</button></a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="uploadReportModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upload Report</h2>
+            <button class="close-btn" id="closeUploadReportModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form action="upload_report.php" method="POST" enctype="multipart/form-data">
+                <label for="title">Report Title</label>
+                <input type="text" id="title" name="title" placeholder="Enter report title" required>
+                <label for="report">Select File</label>
+                <input type="file" id="report" name="report" required>
+                <label for="month">Month</label>
+                <select id="month" name="month" required>
+                    <?php for ($m=1; $m<=12; $m++): ?>
+                        <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="day">Day</label>
+                <select id="day" name="day" required>
+                    <?php for ($d=1; $d<=31; $d++): ?>
+                        <option value="<?= $d ?>"><?= $d ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="year">Year</label>
+                <input type="number" id="year" name="year" value="<?= date('Y') ?>" required>
+                <button type="submit" class="btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="uploadFolderModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upload Folder</h2>
+            <button class="close-btn" id="closeUploadFolderModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <div id="folderUploadForm">
+                <form action="upload_folder.php" method="POST" enctype="multipart/form-data" id="folderForm">
+                    <label for="folder_title">Folder Title</label>
+                    <input type="text" id="folder_title" name="folder_title" placeholder="Enter folder title" required>
+                    <label for="folder">Select Folder</label>
+                    <input type="file" id="folder" name="files[]" webkitdirectory multiple required>
+                    <label for="month">Month</label>
+                    <select id="folder_month" name="month" required>
+                        <?php for ($m=1; $m<=12; $m++): ?>
+                            <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+                        <?php endfor; ?>
+                    </select>
+                    <label for="day">Day</label>
+                    <select id="folder_day" name="day" required>
+                        <?php for ($d=1; $d<=31; $d++): ?>
+                            <option value="<?= $d ?>"><?= $d ?></option>
+                        <?php endfor; ?>
+                    </select>
+                    <label for="year">Year</label>
+                    <input type="number" id="folder_year" name="year" value="<?= date('Y') ?>" required>
+                    <button type="submit" class="btn-primary">Upload Folder</button>
+                </form>
+            </div>
+            <div id="folderLoading" style="display: none; text-align: center; padding: 20px;">
+                <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
+                <p>Uploading files... Please wait.</p>
             </div>
         </div>
     </div>
@@ -486,7 +556,7 @@ document.addEventListener('click', (e) => {
         const path = btn.dataset.path;
         const title = btn.dataset.title;
         const ext = path.split('.').pop().toLowerCase();
-        if (['pdf', 'jpg', 'jpeg', 'png', 'gif'].includes(ext)) {
+        if (['pdf', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg'].includes(ext)) {
             documentPreview.src = path;
             documentPreview.style.display = 'block';
             previewMessage.style.display = 'none';
@@ -541,6 +611,54 @@ previewModal.addEventListener('click', (e) => {
         documentPreview.style.display = 'block';
         previewMessage.style.display = 'none';
     }
+});
+
+const uploadReportModal = document.getElementById('uploadReportModal');
+const uploadReportBtn = document.getElementById('uploadReportBtn');
+const closeUploadReportModal = document.getElementById('closeUploadReportModal');
+
+uploadReportBtn.addEventListener('click', () => {
+    uploadReportModal.classList.add('active');
+});
+
+closeUploadReportModal.addEventListener('click', () => {
+    uploadReportModal.classList.remove('active');
+});
+
+uploadReportModal.addEventListener('click', (e) => {
+    if(e.target === uploadReportModal){
+        uploadReportModal.classList.remove('active');
+    }
+});
+
+const uploadFolderModal = document.getElementById('uploadFolderModal');
+const uploadFolderBtn = document.getElementById('uploadFolderBtn');
+const closeUploadFolderModal = document.getElementById('closeUploadFolderModal');
+const folderForm = document.getElementById('folderForm');
+const folderUploadForm = document.getElementById('folderUploadForm');
+const folderLoading = document.getElementById('folderLoading');
+
+uploadFolderBtn.addEventListener('click', () => {
+    uploadFolderModal.classList.add('active');
+});
+
+closeUploadFolderModal.addEventListener('click', () => {
+    uploadFolderModal.classList.remove('active');
+    folderUploadForm.style.display = 'block';
+    folderLoading.style.display = 'none';
+});
+
+uploadFolderModal.addEventListener('click', (e) => {
+    if(e.target === uploadFolderModal){
+        uploadFolderModal.classList.remove('active');
+        folderUploadForm.style.display = 'block';
+        folderLoading.style.display = 'none';
+    }
+});
+
+folderForm.addEventListener('submit', () => {
+    folderUploadForm.style.display = 'none';
+    folderLoading.style.display = 'block';
 });
 </script>
 

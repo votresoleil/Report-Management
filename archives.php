@@ -85,14 +85,7 @@ if ($year && $month) {
     <?php include 'sidebar.php'; ?>
 
     <main class="main-content">
-        <div class="header-section">
-            <h2>Archives</h2>
-            <div class="icons-right">
-                <i class="fas fa-users"></i>
-                <i class="fas fa-bell"></i>
-                <i class="fas fa-user"></i>
-            </div>
-        </div>
+        <?php $page_title = 'Archives'; include 'header.php'; ?>
         <div class="content-section">
              <div class="folders-container" id="yearsContainer">
              <?php foreach ($years as $y => $count): ?>

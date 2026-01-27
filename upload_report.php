@@ -4,7 +4,7 @@ require 'config/auth.php'; // ensures user is logged in
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $allowed = ['pdf', 'doc', 'docx'];
+    $allowed = ['pdf', 'doc', 'docx', 'pptx', 'pub', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg'];
     $file = $_FILES['report'];
 
     $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
