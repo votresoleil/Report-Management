@@ -65,13 +65,10 @@ foreach ($activitiesByDate as $date => $acts) {
             $hasUndone = true;
         }
     }
-    if ($hasCompleted && !$hasInProgress && !$hasUndone) {
-        $dateStatus[$date] = 'green';
-    } elseif ($hasInProgress) {
-        $dateStatus[$date] = 'yellow';
-    } else {
+    if ($hasUndone || $hasInProgress) {
         $dateStatus[$date] = 'red';
     }
+    // No dot if all activities are completed
 }
 
 $show_activity_modal = isset($_SESSION['activity_added']);
