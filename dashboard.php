@@ -24,14 +24,14 @@ $stmt->execute(["%$search%"]);
 $data['recent_reports'] = $stmt->fetchAll();
 
 // Activities
-$stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? ORDER BY start_date");
-$stmt->execute([$_SESSION['user_id']]);
+$stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id ORDER BY start_date");
+$stmt->execute([]);
 $activities = $stmt->fetchAll();
 
 // Upcoming activities (within 2 days)
 $twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
-$stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? AND start_date <= ? AND start_date >= ? AND status != 'completed' ORDER BY start_date");
-$stmt->execute([$_SESSION['user_id'], $twoDaysFromNow, date('Y-m-d')]);
+$stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id WHERE a.start_date <= ? AND a.start_date >= ? AND a.status != 'completed' ORDER BY a.start_date");
+$stmt->execute([$twoDaysFromNow, date('Y-m-d')]);
 $upcomingActivities = $stmt->fetchAll();
 
 $selected_date = null;
@@ -39,6 +39,9 @@ if (isset($_SESSION['selected_date'])) {
     $selected_date = $_SESSION['selected_date'];
     unset($_SESSION['selected_date']);
 }
+
+$calendarMonth = $_GET['month'] ?? date('m');
+$calendarYear = $_GET['year'] ?? date('Y');
 
 // Group activities by date
 $activitiesByDate = [];
@@ -76,9 +79,8 @@ if ($show_activity_modal) {
     unset($_SESSION['activity_added']);
 }
 
-// Calendar data
-$calendarMonth = date('m');
-$calendarYear = date('Y');
+$calendarMonth = $_GET['month'] ?? date('m');
+$calendarYear = $_GET['year'] ?? date('Y');
 $firstDay = mktime(0,0,0,$calendarMonth,1,$calendarYear);
 $daysInMonth = date('t', $firstDay);
 $startDay = date('w', $firstDay);
@@ -114,42 +116,51 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
         <div class="calendar-section">
             <div class="calendar">
             <div class="calendar-view">
-                <h3><?= date('F Y') ?></h3>
-                <table class="calendar-table">
-                    <thead>
-                        <tr>
-                            <th>Sun</th>
-                            <th>Mon</th>
-                            <th>Tue</th>
-                            <th>Wed</th>
-                            <th>Thu</th>
-                            <th>Fri</th>
-                            <th>Sat</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <?php
-                        $weeks = array_chunk($calendar, 7);
-                        foreach ($weeks as $week):
-                        ?>
-                        <tr>
-                            <?php foreach ($week as $day): ?>
-                            <?php if ($day): ?>
-                                <td class="day <?= $day == date('j') ? 'today' : '' ?>" data-date="<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>" onclick="selectDate('<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>', this)">
-                                    <?= $day ?>
-                                    <?php if (isset($dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)])): ?>
-                                        <span class="status-dot <?= $dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)] ?>"></span>
-                                    <?php endif; ?>
-                                </td>
-                            <?php else: ?>
-                                <td></td>
-                            <?php endif; ?>
-                            <?php endforeach; ?>
-                        </tr>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
+                            <div class="calendar-nav">
+                                <button onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
+                                <select id="yearSelect" onchange="changeYear()">
+                                    <?php for($y = date('Y')-5; $y <= date('Y')+5; $y++): ?>
+                                        <option value="<?= $y ?>" <?= $y == $calendarYear ? 'selected' : '' ?>><?= $y ?></option>
+                                    <?php endfor; ?>
+                                </select>
+                                <button onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                            <h3><?= date('F Y', mktime(0,0,0,$calendarMonth,1,$calendarYear)) ?></h3>
+                            <table class="calendar-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sun</th>
+                                        <th>Mon</th>
+                                        <th>Tue</th>
+                                        <th>Wed</th>
+                                        <th>Thu</th>
+                                        <th>Fri</th>
+                                        <th>Sat</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $weeks = array_chunk($calendar, 7);
+                                    foreach ($weeks as $week):
+                                    ?>
+                                    <tr>
+                                        <?php foreach ($week as $day): ?>
+                                        <?php if ($day): ?>
+                                            <td class="day <?= $day == date('j') && $calendarMonth == date('m') && $calendarYear == date('Y') ? 'today' : '' ?>" data-date="<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>" onclick="selectDate('<?= $calendarYear ?>-<?= str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) ?>-<?= str_pad($day, 2, '0', STR_PAD_LEFT) ?>', this)">
+                                                <?= $day ?>
+                                                <?php if (isset($dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)])): ?>
+                                                    <span class="status-dot <?= $dateStatus[$calendarYear . '-' . str_pad($calendarMonth, 2, '0', STR_PAD_LEFT) . '-' . str_pad($day, 2, '0', STR_PAD_LEFT)] ?>"></span>
+                                                <?php endif; ?>
+                                            </td>
+                                        <?php else: ?>
+                                            <td></td>
+                                        <?php endif; ?>
+                                        <?php endforeach; ?>
+                                    </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
             <div class="upcoming-activities">
                 <div class="activity-header">
                     <h3 id="activity-date">Select a date</h3>
@@ -314,7 +325,7 @@ function selectDate(date, element) {
             const checkIcon = `<a href="update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
             const div = document.createElement('div');
             div.className = 'activity-item';
-            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p>${act.description}</p></div>${checkIcon}`;
+            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p>${act.description}</p></div>${checkIcon}`;
             list.appendChild(div);
         });
     }
@@ -473,6 +484,25 @@ document.querySelector('.calendar-section').addEventListener('click', function(e
         document.getElementById('activity-list').innerHTML = '<p>Click on a date to view or add activities.</p>';
     }
 });
+
+function changeMonth(delta) {
+    let month = parseInt('<?= $calendarMonth ?>');
+    let year = parseInt('<?= $calendarYear ?>');
+    month += delta;
+    if (month < 1) { month = 12; year--; }
+    if (month > 12) { month = 1; year++; }
+    const url = new URL(window.location);
+    url.searchParams.set('month', month.toString().padStart(2,'0'));
+    url.searchParams.set('year', year);
+    window.location.href = url.toString();
+}
+
+function changeYear() {
+    const year = document.getElementById('yearSelect').value;
+    const url = new URL(window.location);
+    url.searchParams.set('year', year);
+    window.location.href = url.toString();
+}
 
 const searchInput = document.getElementById('searchInput');
 const reportsList = document.querySelector('.reports-list');

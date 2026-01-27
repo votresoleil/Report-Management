@@ -664,6 +664,36 @@ body {
 
 .calendar-view h3 {
     color: #333;
+    text-align: center;
+}
+
+.calendar-nav {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.calendar-nav button {
+    background: #1f8f5f;
+    color: white;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.calendar-nav button:hover {
+    background: #166f4a;
+}
+
+.calendar-nav select {
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
 }
 
 .activity-item {

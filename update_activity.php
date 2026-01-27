@@ -9,8 +9,8 @@ if (!$id || !$status) {
     die("Invalid request.");
 }
 
-$stmt = $pdo->prepare("UPDATE activities SET status = ? WHERE id = ? AND user_id = ?");
-$stmt->execute([$status, $id, $_SESSION['user_id']]);
+$stmt = $pdo->prepare("UPDATE activities SET status = ? WHERE id = ?");
+$stmt->execute([$status, $id]);
 
 // Log
 $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
