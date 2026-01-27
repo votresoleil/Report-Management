@@ -1468,6 +1468,25 @@ body {
     color: #333;
 }
 
+/* Notifications Modal */
+#notificationsModal ul {
+    list-style: none;
+    padding: 0;
+}
+
+#notificationsModal li {
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+#notificationsModal li:last-child {
+    border-bottom: none;
+}
+
+#notificationsModal strong {
+    color: #1f8f5f;
+}
+
 /* No Reports */
 .no-reports {
     text-align: center;

@@ -1,8 +1,8 @@
 <?php
 // Upcoming activities for notifications
 $twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
-$stmt = $pdo->prepare("SELECT * FROM activities WHERE user_id = ? AND start_date <= ? AND start_date >= ? AND status != 'completed' ORDER BY start_date");
-$stmt->execute([$_SESSION['user_id'], $twoDaysFromNow, date('Y-m-d')]);
+$stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id WHERE a.start_date <= ? AND a.start_date >= ? AND a.status != 'completed' ORDER BY a.start_date");
+$stmt->execute([$twoDaysFromNow, date('Y-m-d')]);
 $upcomingActivities = $stmt->fetchAll();
 ?>
 <div class="header-section">
@@ -44,6 +44,26 @@ $upcomingActivities = $stmt->fetchAll();
             <p><strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['name']); ?></p>
             <p><strong>Username:</strong> <?php echo htmlspecialchars($_SESSION['user_id']); ?></p>
             <p><strong>Role:</strong> <?php echo htmlspecialchars($_SESSION['role']); ?></p>
+        </div>
+    </div>
+</div>
+
+<div id="notificationsModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upcoming Activities</h2>
+            <button class="close-btn" id="closeNotificationsModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <?php if (empty($upcomingActivities)): ?>
+                <p>No upcoming activities.</p>
+            <?php else: ?>
+                <ul>
+                    <?php foreach ($upcomingActivities as $act): ?>
+                        <li><strong><?php echo htmlspecialchars($act['title']); ?></strong> by <?php echo htmlspecialchars($act['full_name']); ?> on <?php echo date('M d, Y', strtotime($act['start_date'])); ?></li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
         </div>
     </div>
 </div>
@@ -106,6 +126,16 @@ closeUserInfoModal.addEventListener('click', () => {
 userInfoModal.addEventListener('click', (e) => {
     if(e.target === userInfoModal){
         userInfoModal.classList.remove('active');
+    }
+});
+
+closeNotificationsModal.addEventListener('click', () => {
+    notificationsModal.classList.remove('active');
+});
+
+notificationsModal.addEventListener('click', (e) => {
+    if(e.target === notificationsModal){
+        notificationsModal.classList.remove('active');
     }
 });
 
