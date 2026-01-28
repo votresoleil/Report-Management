@@ -1015,6 +1015,44 @@ body {
     flex: 1;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+#addUserForm form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 20px;
+}
+
+#addUserForm input,
+#addUserForm select {
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#addUserForm input:focus,
+#addUserForm select:focus {
+    border-color: #1f8f5f;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(31, 143, 95, 0.2);
+}
+
+#addUserForm .btn-primary,
+#addUserForm .btn-secondary {
+    width: auto;
+    padding: 10px 20px;
+    margin-top: 10px;
+    align-self: flex-start;
+}
+
 .close-btn {
     background: none;
     border: none;
