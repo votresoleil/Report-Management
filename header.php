@@ -27,8 +27,28 @@ $upcomingActivities = $stmt->fetchAll();
             <button class="close-btn" id="closeUsersModal">&times;</button>
         </div>
         <div class="modal-content">
+            <?php if ($_SESSION['role'] == 'admin'): ?>
+                <button id="addUserBtn" class="btn-primary"><i class="fas fa-plus"></i> Add New User</button>
+            <?php endif; ?>
             <div id="usersList">
                 <p>Loading users...</p>
+            </div>
+            <div id="addUserForm" style="display: none;">
+                <form id="userForm">
+                    <label for="full_name">Full Name</label>
+                    <input type="text" id="full_name" name="full_name" required>
+                    <label for="username">Username</label>
+                    <input type="text" id="username" name="username" required>
+                    <label for="password">Password</label>
+                    <input type="password" id="password" name="password" required>
+                    <label for="role">Role</label>
+                    <select id="role" name="role" required>
+                        <option value="assistant">Assistant</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                    <button type="submit" class="btn-primary">Add User</button>
+                    <button type="button" id="cancelAddUser" class="btn-secondary">Cancel</button>
+                </form>
             </div>
         </div>
     </div>
@@ -68,6 +88,31 @@ $upcomingActivities = $stmt->fetchAll();
     </div>
 </div>
 
+<div id="addUserModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Add New User</h2>
+            <button class="close-btn" id="closeAddUserModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form id="addUserForm">
+                <label for="full_name">Full Name</label>
+                <input type="text" id="full_name" name="full_name" required>
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required>
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+                <label for="role">Role</label>
+                <select id="role" name="role" required>
+                    <option value="assistant">Assistant</option>
+                    <option value="admin">Admin</option>
+                </select>
+                <button type="submit" class="btn-primary">Add User</button>
+            </form>
+        </div>
+    </div>
+</div>
+
 <script>
 // Header modals
 const usersModal = document.getElementById('usersModal');
@@ -99,6 +144,52 @@ function showUsersModal() {
             document.getElementById('usersList').innerHTML = '<p>Error loading users.</p>';
             usersModal.classList.add('active');
         });
+}
+
+const addUserBtn = document.getElementById('addUserBtn');
+const addUserForm = document.getElementById('addUserForm');
+const userForm = document.getElementById('userForm');
+const cancelAddUser = document.getElementById('cancelAddUser');
+
+if (addUserBtn) {
+    addUserBtn.addEventListener('click', () => {
+        addUserForm.style.display = 'block';
+        addUserBtn.style.display = 'none';
+    });
+}
+
+if (cancelAddUser) {
+    cancelAddUser.addEventListener('click', () => {
+        addUserForm.style.display = 'none';
+        addUserBtn.style.display = 'block';
+        userForm.reset();
+    });
+}
+
+if (userForm) {
+    userForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const formData = new FormData(userForm);
+        fetch('add_user.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('User added successfully!');
+                userForm.reset();
+                addUserForm.style.display = 'none';
+                addUserBtn.style.display = 'block';
+                showUsersModal(); // Refresh the users list
+            } else {
+                alert('Error: ' + data.message);
+            }
+        })
+        .catch(() => {
+            alert('An error occurred while adding the user.');
+        });
+    });
 }
 
 function showUserInfoModal() {
