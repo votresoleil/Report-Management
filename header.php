@@ -25,7 +25,7 @@ $upcomingActivities = $stmt->fetchAll();
         <div class="modal-header">
             <h2>System Users</h2>
             <div class="header-actions">
-                <?php if ($_SESSION['role'] == 'admin' && basename($_SERVER['PHP_SELF']) != 'dashboard.php'): ?>
+                <?php if ($_SESSION['role'] == 'admin'): ?>
                     <button id="addUserBtn" class="btn-primary"><i class="fas fa-plus"></i> Add New User</button>
                 <?php endif; ?>
                 <button class="close-btn" id="closeUsersModal">&times;</button>
@@ -34,23 +34,6 @@ $upcomingActivities = $stmt->fetchAll();
         <div class="modal-content">
             <div id="usersList">
                 <p>Loading users...</p>
-            </div>
-            <div id="addUserForm" style="display: none;">
-                <form id="userForm">
-                    <label for="full_name">Full Name</label>
-                    <input type="text" id="full_name" name="full_name" required>
-                    <label for="username">Username</label>
-                    <input type="text" id="username" name="username" required>
-                    <label for="password">Password</label>
-                    <input type="password" id="password" name="password" required>
-                    <label for="role">Role</label>
-                    <select id="role" name="role" required>
-                        <option value="assistant">Assistant</option>
-                        <option value="admin">Admin</option>
-                    </select>
-                    <button type="submit" class="btn-primary">Add User</button>
-                    <button type="button" id="cancelAddUser" class="btn-secondary">Cancel</button>
-                </form>
             </div>
         </div>
     </div>
@@ -124,21 +107,34 @@ function showUsersModal() {
 }
 
 const addUserBtn = document.getElementById('addUserBtn');
-const addUserForm = document.getElementById('addUserForm');
+const addUserModal = document.getElementById('addUserModal');
+const closeAddUserModal = document.getElementById('closeAddUserModal');
 const userForm = document.getElementById('userForm');
 const cancelAddUser = document.getElementById('cancelAddUser');
 
 if (addUserBtn) {
     addUserBtn.addEventListener('click', () => {
-        addUserForm.style.display = 'block';
-        addUserBtn.style.display = 'none';
+        addUserModal.classList.add('active');
+    });
+}
+
+if (closeAddUserModal) {
+    closeAddUserModal.addEventListener('click', () => {
+        addUserModal.classList.remove('active');
+    });
+}
+
+if (addUserModal) {
+    addUserModal.addEventListener('click', (e) => {
+        if (e.target === addUserModal) {
+            addUserModal.classList.remove('active');
+        }
     });
 }
 
 if (cancelAddUser) {
     cancelAddUser.addEventListener('click', () => {
-        addUserForm.style.display = 'none';
-        addUserBtn.style.display = 'block';
+        addUserModal.classList.remove('active');
         userForm.reset();
     });
 }
@@ -156,8 +152,7 @@ if (userForm) {
             if (data.success) {
                 alert('User added successfully!');
                 userForm.reset();
-                addUserForm.style.display = 'none';
-                addUserBtn.style.display = 'block';
+                addUserModal.classList.remove('active');
                 showUsersModal(); // Refresh the users list
             } else {
                 alert('Error: ' + data.message);
