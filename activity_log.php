@@ -4,12 +4,12 @@ require 'config/auth.php';
 
 $active_view = 'logs';
 
-// Pagination
+
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $per_page = 10;
 $offset = ($page - 1) * $per_page;
 
-// Get total count
+
 $total_stmt = $pdo->prepare("SELECT COUNT(*) as total FROM activity_logs");
 $total_stmt->execute();
 $total_logs = $total_stmt->fetch()['total'];
@@ -26,7 +26,7 @@ $stmt = $pdo->prepare("
 $stmt->execute();
 $logs = $stmt->fetchAll();
 
-// Action mapping
+
 $action_map = [
     'ADD_ACTIVITY' => 'ADD',
     'UPDATE_ACTIVITY' => 'UPDATE',
@@ -36,7 +36,7 @@ $action_map = [
     'DELETE' => 'DELETE'
 ];
 
-// Status mapping
+
 $status_map = [
     'ADD_ACTIVITY' => 'IN PROGRESS',
     'DELETE' => 'DELETED',

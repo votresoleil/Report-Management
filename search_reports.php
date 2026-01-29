@@ -33,7 +33,7 @@ $query .= $month ? " ORDER BY r.report_year DESC" : " ORDER BY r.report_id DESC"
 $query .= " LIMIT ? OFFSET ?";
 
 $stmt = $pdo->prepare($query);
-// Bind parameters
+
 $paramIndex = 1;
 foreach ($params as $param) {
     $stmt->bindValue($paramIndex++, $param);
@@ -43,7 +43,6 @@ $stmt->bindValue($paramIndex++, $offset, PDO::PARAM_INT);
 $stmt->execute();
 $reports = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get total count
 $countQuery = "
     SELECT COUNT(*) as total
     FROM reports r

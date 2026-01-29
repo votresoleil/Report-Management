@@ -13,17 +13,14 @@ if ($show_activity_modal) {
     unset($_SESSION['activity_added']);
 }
 
-// Activity stats
 $totalActivities = count($activities);
 $completed = count(array_filter($activities, fn($a) => $a['status'] === 'completed'));
 $inProgress = count(array_filter($activities, fn($a) => $a['status'] === 'in-progress'));
 $pending = count(array_filter($activities, fn($a) => $a['status'] === 'pending'));
 
-// Separate activities
 $pendingActivities = array_filter($activities, fn($a) => $a['status'] !== 'completed');
 $completedActivities = array_filter($activities, fn($a) => $a['status'] === 'completed');
 
-// Pagination
 $per_page = 5;
 $pending_page = isset($_GET['pending_page']) ? max(1, (int)$_GET['pending_page']) : 1;
 $completed_page = isset($_GET['completed_page']) ? max(1, (int)$_GET['completed_page']) : 1;
@@ -40,7 +37,6 @@ $completed_display = array_slice($completedActivities, $completed_offset, $per_p
 $pending_total_pages = ceil($pending_total / $per_page);
 $completed_total_pages = ceil($completed_total / $per_page);
 
-// Upcoming deadlines (next 5)
 $upcoming = array_filter($activities, fn($a) => strtotime($a['start_date']) >= time());
 usort($upcoming, fn($a, $b) => strtotime($a['start_date']) - strtotime($b['start_date']));
 $upcomingDeadlines = array_slice($upcoming, 0, 5);

@@ -1,5 +1,5 @@
 <?php
-// This file contains the sidebar and logout modal
+
 if (!isset($active_view)) $active_view = 'main';
 ?>
 <aside class="sidebar">
@@ -8,13 +8,15 @@ if (!isset($active_view)) $active_view = 'main';
             <img src="img/NEECO_banner.png" alt="Company Logo" class="sidebar-logo">
             <span class="role-text"><?= isset($_SESSION['role']) && $_SESSION['role'] == 'admin' ? 'Administrator' : 'Assistant' ?></span>
         </div>
-        <!-- <h1>Report & Activity Management System</h1> -->
+       
         <ul>
             <li><a href="dashboard.php" class="<?= $active_view === 'main' ? 'active' : '' ?>"><i class="fas fa-tachometer-alt"></i> Main Dashboard</a></li>
             <li><a href="report_folders.php" class="<?= $active_view === 'folders' ? 'active' : '' ?>"><i class="fas fa-folder"></i> Report Folders</a></li>
             <li><a href="calendar.php" class="<?= $active_view === 'calendar' ? 'active' : '' ?>"><i class="fas fa-calendar"></i> Activity Calendar</a></li>
             <li><a href="archives.php" class="<?= $active_view === 'archives' ? 'active' : '' ?>"><i class="fas fa-archive"></i> Archives</a></li>
+            <?php if ($_SESSION['role'] == 'admin'): ?>
             <li><a href="activity_log.php" class="<?= $active_view === 'logs' ? 'active' : '' ?>"><i class="fas fa-history"></i> Activity Log</a></li>
+            <?php endif; ?>
         </ul>
     </div>
     <div class="sidebar-footer">

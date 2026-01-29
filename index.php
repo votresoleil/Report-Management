@@ -49,7 +49,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="error"><?= htmlspecialchars($error) ?></div>
         <?php endif; ?>
 
-        <!-- Login Form -->
         <form method="post">
 
             <div class="input-group floating">

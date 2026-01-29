@@ -10,7 +10,7 @@ $page = $_GET['page'] ?? 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Show folder overview - years with archived reports
+
 $years = [];
 $stmt = $pdo->query("SELECT DISTINCT report_year FROM reports WHERE status = 'archived' ORDER BY report_year DESC");
 $yearRows = $stmt->fetchAll();
@@ -22,7 +22,6 @@ foreach ($yearRows as $row) {
 }
 
 if ($year && !$month) {
-    // Show months for specific year
     $months = [];
     for ($m = 1; $m <= 12; $m++) {
         $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'archived' AND report_year = ? AND report_month = ?");
@@ -35,7 +34,6 @@ if ($year && !$month) {
 }
 
 if ($year && $month) {
-    // Show reports for specific month and year
     $stmt = $pdo->prepare("
         SELECT r.*, u.full_name
         FROM reports r
@@ -53,7 +51,6 @@ if ($year && $month) {
     $stmt->execute();
     $reports = $stmt->fetchAll();
 
-    // Get total count
     $countStmt = $pdo->prepare("
         SELECT COUNT(*) as total
         FROM reports r
@@ -224,12 +221,12 @@ let selectedYear = null;
 
 function toggleYear(year) {
     if (selectedYear === year) {
-        // Close
+        
         selectedYear = null;
         document.getElementById('monthsPanel').style.display = 'none';
         document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
     } else {
-        // Open
+       
         selectedYear = year;
         document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
         event.currentTarget.classList.add('selected');
@@ -239,7 +236,7 @@ function toggleYear(year) {
 }
 
 function fetchMonths(year, status) {
-    // Fetch months for the year
+    
     fetch(`get_months.php?year=${year}&status=${status}`)
         .then(response => response.json())
         .then(data => {
@@ -261,7 +258,7 @@ function fetchMonths(year, status) {
         });
 }
 
-// Check if year is in URL and open panel
+
 const urlParams = new URLSearchParams(window.location.search);
 const yearParam = urlParams.get('year');
 if (yearParam) {
@@ -321,12 +318,12 @@ confirmRestore.addEventListener('click', () => {
                     successMessage.textContent = data.message;
                     successNotification.classList.add('active');
                     restoreModal.classList.remove('active');
-                    // Remove the restored report card
+                   
                     const card = document.querySelector(`.restore-btn[data-id="${restoreId}"]`).closest('.report-card');
                     if (card) card.remove();
-                    // Reload reports
+                    
                     loadReports('', 1);
-                    // Auto-hide after 3 seconds
+                    
                     setTimeout(() => {
                         successNotification.classList.remove('active');
                     }, 3000);
@@ -359,12 +356,11 @@ confirmDelete.addEventListener('click', () => {
                     successMessage.textContent = data.message;
                     successNotification.classList.add('active');
                     deleteModal.classList.remove('active');
-                    // Remove the deleted report card
+                    
                     const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
                     if (card) card.remove();
-                    // Reload reports
+                   
                     loadReports('', 1);
-                    // Auto-hide after 3 seconds
                     setTimeout(() => {
                         successNotification.classList.remove('active');
                     }, 3000);
@@ -434,7 +430,6 @@ function loadReports(query, page = 1) {
                     reportsList.innerHTML += card;
                 });
             }
-            // Add pagination if total > 10
             const paginationContainer = document.querySelector('.pagination');
             if (paginationContainer) {
                 paginationContainer.remove();
@@ -485,7 +480,6 @@ document.addEventListener('click', (e) => {
             downloadLink.download = title + '.' + ext;
             previewModal.classList.add('active');
         } else if (ext === 'docx') {
-            // Convert DOCX to PDF for preview
             fetch(`convert_to_pdf.php?path=${encodeURIComponent(path)}`)
                 .then(response => response.json())
                 .then(data => {

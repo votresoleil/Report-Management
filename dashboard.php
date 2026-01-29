@@ -23,12 +23,10 @@ $stmt = $pdo->prepare("
 $stmt->execute(["%$search%"]);
 $data['recent_reports'] = $stmt->fetchAll();
 
-// Activities
 $stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id ORDER BY start_date");
 $stmt->execute([]);
 $activities = $stmt->fetchAll();
 
-// Upcoming activities (within 2 days)
 $twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
 $stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id WHERE a.start_date <= ? AND a.start_date >= ? AND a.status != 'completed' ORDER BY a.start_date");
 $stmt->execute([$twoDaysFromNow, date('Y-m-d')]);
@@ -43,7 +41,6 @@ if (isset($_SESSION['selected_date'])) {
 $calendarMonth = $_GET['month'] ?? date('m');
 $calendarYear = $_GET['year'] ?? date('Y');
 
-// Group activities by date
 $activitiesByDate = [];
 $dateStatus = [];
 foreach ($activities as $act) {
@@ -54,7 +51,6 @@ foreach ($activities as $act) {
     $activitiesByDate[$date][] = $act;
 }
 
-// Determine status for each date
 foreach ($activitiesByDate as $date => $acts) {
     $hasCompleted = false;
     $hasInProgress = false;
@@ -71,7 +67,6 @@ foreach ($activitiesByDate as $date => $acts) {
     if ($hasUndone || $hasInProgress) {
         $dateStatus[$date] = 'red';
     }
-    // No dot if all activities are completed
 }
 
 $show_activity_modal = isset($_SESSION['activity_added']);
@@ -306,9 +301,7 @@ const activities = <?= json_encode($activities) ?>;
 let selectedDate = null;
 
 function selectDate(date, element) {
-    // Remove selected class from all days
     document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
-    // Add selected class to clicked day
     element.classList.add('selected');
 
     selectedDate = date;
@@ -427,7 +420,6 @@ document.addEventListener('click', (e) => {
             downloadLink.download = title + '.' + ext;
             previewModal.classList.add('active');
         } else if (ext === 'docx') {
-            // Convert DOCX to PDF for preview
             fetch(`convert_to_pdf.php?path=${encodeURIComponent(path)}`)
                 .then(response => response.json())
                 .then(data => {
@@ -510,7 +502,6 @@ const reportsList = document.querySelector('.reports-list');
 searchInput.addEventListener('input', function() {
     const query = this.value.trim();
     if (query === '') {
-        // Reload recent reports
         location.reload();
     } else {
         fetch(`search_reports.php?search=${encodeURIComponent(query)}`)

@@ -18,7 +18,6 @@ if (!$id) {
 $stmt = $pdo->prepare("UPDATE reports SET status = 'archived' WHERE report_id = ?");
 $stmt->execute([$id]);
 
-// Log activity
 $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
 $log->execute([$_SESSION['user_id'], 'ARCHIVE', 'Archived report ID: ' . $id]);
 

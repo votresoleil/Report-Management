@@ -11,7 +11,6 @@ $limit = 10;
 $offset = ($page - 1) * $limit;
 $months = [];
 
-// Show folder overview - years with reports
 $years = [];
 $stmt = $pdo->query("SELECT DISTINCT report_year FROM reports WHERE status = 'active' ORDER BY report_year DESC");
 $yearRows = $stmt->fetchAll();
@@ -23,7 +22,7 @@ foreach ($yearRows as $row) {
 }
 
 if ($year && !$month) {
-    // Show months for specific year
+
     $months = [];
     for ($m = 1; $m <= 12; $m++) {
         $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'active' AND report_year = ? AND report_month = ?");
@@ -36,7 +35,6 @@ if ($year && !$month) {
 }
 
 if ($year && $month) {
-    // Show reports for specific month and year
     $stmt = $pdo->prepare("
         SELECT r.*, u.full_name
         FROM reports r
@@ -54,7 +52,7 @@ if ($year && $month) {
     $stmt->execute();
     $reports = $stmt->fetchAll();
 
-    // Get total count
+    
     $countStmt = $pdo->prepare("
         SELECT COUNT(*) as total
         FROM reports r

@@ -1,7 +1,6 @@
 <?php
 require 'config/db.php';
-require 'config/auth.php'; // ensures user is logged in
-
+require 'config/auth.php'; 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $allowed = ['pdf', 'doc', 'docx', 'pptx', 'pub', 'jpg', 'jpeg', 'png', 'gif', 'bmp', 'tiff', 'svg'];
@@ -13,29 +12,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Invalid file type. Only PDF and Word files are allowed.");
     }
 
-    // Get the month/year/day from form
+    
     $year  = $_POST['year'];
     $month = str_pad($_POST['month'], 2, '0', STR_PAD_LEFT);
     $day = str_pad($_POST['day'], 2, '0', STR_PAD_LEFT);
 
-    // Folder structure: uploads/2025/01/01/
+   
     $dir = "uploads/$year/$month/$day/";
 
-    // Automatically create folder if it doesn't exist
+    
     if (!is_dir($dir)) {
-        mkdir($dir, 0777, true); // recursive creation
+        mkdir($dir, 0777, true); 
     }
 
-    // Create unique filename to prevent overwriting
+    
     $newName = time() . "_" . basename($file['name']);
     $path = $dir . $newName;
 
-    // Move uploaded file to folder
     if (!move_uploaded_file($file['tmp_name'], $path)) {
         die("Failed to move uploaded file.");
     }
 
-    // Insert into database
+  
     $stmt = $pdo->prepare("
         INSERT INTO reports
         (report_title, file_name, file_type, file_size, local_path, report_month, report_year, uploaded_by)
@@ -53,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_SESSION['user_id']
     ]);
 
-    // Log activity
+  
     $log = $pdo->prepare("
         INSERT INTO activity_logs (user_id, action, description)
         VALUES (?,?,?)

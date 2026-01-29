@@ -29,7 +29,6 @@ if (!in_array($role, ['admin', 'assistant'])) {
     exit;
 }
 
-// Check if username already exists
 $stmt = $pdo->prepare("SELECT COUNT(*) FROM users WHERE username = ?");
 $stmt->execute([$username]);
 if ($stmt->fetchColumn() > 0) {
@@ -37,10 +36,8 @@ if ($stmt->fetchColumn() > 0) {
     exit;
 }
 
-// Hash the password
 $hashed_password = password_hash($password, PASSWORD_DEFAULT);
 
-// Insert new user
 $stmt = $pdo->prepare("INSERT INTO users (username, password, full_name, role, status) VALUES (?, ?, ?, ?, 'active')");
 if ($stmt->execute([$username, $hashed_password, $full_name, $role])) {
     echo json_encode(['success' => true]);

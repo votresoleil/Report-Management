@@ -1,5 +1,5 @@
 <?php
-// Upcoming activities for notifications
+
 $twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
 $stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id WHERE a.start_date <= ? AND a.start_date >= ? AND a.status != 'completed' ORDER BY a.start_date");
 $stmt->execute([$twoDaysFromNow, date('Y-m-d')]);
@@ -8,7 +8,9 @@ $upcomingActivities = $stmt->fetchAll();
 <div class="header-section">
     <h2><?php echo $page_title ?? 'Page'; ?></h2>
     <div class="icons-right">
+        <?php if ($_SESSION['role'] == 'admin'): ?>
         <i class="fas fa-users" onclick="showUsersModal()"></i>
+        <?php endif; ?>
         <div class="bell-container">
             <i class="fas fa-bell" onclick="showNotificationsModal()"></i>
             <?php if (count($upcomingActivities) > 0): ?>
@@ -19,15 +21,13 @@ $upcomingActivities = $stmt->fetchAll();
     </div>
 </div>
 
-<!-- Modals for header icons -->
+
+<?php if ($_SESSION['role'] == 'admin'): ?>
 <div id="usersModal">
     <div class="modal-box large">
         <div class="modal-header">
             <h2>System Users</h2>
             <div class="header-actions">
-                <?php if ($_SESSION['role'] == 'admin'): ?>
-                    <button id="addUserBtn" class="btn-primary"><i class="fas fa-plus"></i> Add New User</button>
-                <?php endif; ?>
                 <button class="close-btn" id="closeUsersModal">&times;</button>
             </div>
         </div>
@@ -38,6 +38,7 @@ $upcomingActivities = $stmt->fetchAll();
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 <div id="userInfoModal">
     <div class="modal-box">
@@ -53,28 +54,8 @@ $upcomingActivities = $stmt->fetchAll();
     </div>
 </div>
 
-<div id="notificationsModal">
-    <div class="modal-box large">
-        <div class="modal-header">
-            <h2>Upcoming Activities</h2>
-            <button class="close-btn" id="closeNotificationsModal">&times;</button>
-        </div>
-        <div class="modal-content">
-            <?php if (empty($upcomingActivities)): ?>
-                <p>No upcoming activities.</p>
-            <?php else: ?>
-                <ul>
-                    <?php foreach ($upcomingActivities as $act): ?>
-                        <li><strong><?php echo htmlspecialchars($act['title']); ?></strong> by <?php echo htmlspecialchars($act['full_name']); ?> on <?php echo date('M d, Y', strtotime($act['start_date'])); ?></li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
-
 <script>
-// Header modals
+
 const usersModal = document.getElementById('usersModal');
 const closeUsersModal = document.getElementById('closeUsersModal');
 const userInfoModal = document.getElementById('userInfoModal');
@@ -106,11 +87,6 @@ function showUsersModal() {
         });
 }
 
-const addUserBtn = document.getElementById('addUserBtn');
-const addUserModal = document.getElementById('addUserModal');
-const closeAddUserModal = document.getElementById('closeAddUserModal');
-const userForm = document.getElementById('userForm');
-const cancelAddUser = document.getElementById('cancelAddUser');
 
 if (addUserBtn) {
     addUserBtn.addEventListener('click', () => {
@@ -153,8 +129,7 @@ if (userForm) {
                 alert('User added successfully!');
                 userForm.reset();
                 addUserModal.classList.remove('active');
-                showUsersModal(); // Refresh the users list
-            } else {
+                showUsersModal(); 
                 alert('Error: ' + data.message);
             }
         })

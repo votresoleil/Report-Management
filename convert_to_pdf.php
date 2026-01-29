@@ -17,7 +17,6 @@ $basename = pathinfo($path, PATHINFO_FILENAME);
 $pdf_path = $dir . '/' . $basename . '.pdf';
 
 if (!file_exists($pdf_path)) {
-    // Convert using LibreOffice
     $command = "\"C:\\Program Files\\LibreOffice\\program\\soffice.exe\" --headless --convert-to pdf \"$path\" --outdir \"$dir\"";
     exec($command, $output, $return_var);
     if ($return_var !== 0) {

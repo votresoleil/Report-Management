@@ -10,8 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $_POST['description'],
         $_POST['start_date']
     ]);
-
-    // Log
     $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
     $log->execute([$_SESSION['user_id'], 'ADD_ACTIVITY', 'Added activity: ' . $_POST['title']]);
 
