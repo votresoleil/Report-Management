@@ -821,6 +821,31 @@ body {
     opacity: 0.8;
 }
 
+.edit-btn {
+    display: inline-block;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: white;
+    border: 2px solid #1f8f5f;
+    color: #1f8f5f;
+    text-align: center;
+    line-height: 20px;
+    text-decoration: none;
+    font-size: 12px;
+    transition: all 0.2s ease;
+}
+
+.edit-btn:hover {
+    opacity: 0.8;
+}
+
+.activity-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+}
+
 /* Calendar Table */
 .calendar-table {
     width: 100%;
