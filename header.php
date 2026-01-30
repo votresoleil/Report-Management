@@ -54,6 +54,36 @@ $upcomingActivities = $stmt->fetchAll();
     </div>
 </div>
 
+<div id="notificationsModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Upcoming Activities</h2>
+            <button class="close-btn" id="closeNotificationsModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <?php if (empty($upcomingActivities)): ?>
+                <p>No upcoming activities within the next 2 days.</p>
+            <?php else: ?>
+                <ul class="notifications-list">
+                    <?php foreach ($upcomingActivities as $act): ?>
+                        <?php
+                        $daysDiff = (strtotime($act['start_date']) - time()) / (60*60*24);
+                        $urgency = $daysDiff <= 1 ? 'urgent' : ($daysDiff <= 2 ? 'warning' : 'normal');
+                        ?>
+                        <li class="notification-item <?php echo $urgency; ?>">
+                            <div class="notification-content">
+                                <h4><?php echo htmlspecialchars($act['title']); ?></h4>
+                                <p><?php echo htmlspecialchars($act['description']); ?></p>
+                                <small>Due: <?php echo date('M d, Y', strtotime($act['start_date'])); ?> (<?php echo round($daysDiff, 1); ?> days)</small>
+                            </div>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
 <script>
 
 const usersModal = document.getElementById('usersModal');
@@ -129,7 +159,7 @@ if (userForm) {
                 alert('User added successfully!');
                 userForm.reset();
                 addUserModal.classList.remove('active');
-                showUsersModal(); 
+                showUsersModal();
                 alert('Error: ' + data.message);
             }
         })
@@ -177,43 +207,4 @@ notificationsModal.addEventListener('click', (e) => {
     }
 });
 
-closeNotificationsModal.addEventListener('click', () => {
-    notificationsModal.classList.remove('active');
-});
-
-notificationsModal.addEventListener('click', (e) => {
-    if(e.target === notificationsModal){
-        notificationsModal.classList.remove('active');
-    }
-});
 </script>
-
-<div id="notificationsModal">
-    <div class="modal-box large">
-        <div class="modal-header">
-            <h2>Upcoming Activities</h2>
-            <button class="close-btn" id="closeNotificationsModal">&times;</button>
-        </div>
-        <div class="modal-content">
-            <?php if (empty($upcomingActivities)): ?>
-                <p>No upcoming activities within the next 2 days.</p>
-            <?php else: ?>
-                <ul class="notifications-list">
-                    <?php foreach ($upcomingActivities as $act): ?>
-                        <?php
-                        $daysDiff = (strtotime($act['start_date']) - time()) / (60*60*24);
-                        $urgency = $daysDiff <= 1 ? 'urgent' : ($daysDiff <= 2 ? 'warning' : 'normal');
-                        ?>
-                        <li class="notification-item <?php echo $urgency; ?>">
-                            <div class="notification-content">
-                                <h4><?php echo htmlspecialchars($act['title']); ?></h4>
-                                <p><?php echo htmlspecialchars($act['description']); ?></p>
-                                <small>Due: <?php echo date('M d, Y', strtotime($act['start_date'])); ?> (<?php echo round($daysDiff, 1); ?> days)</small>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
-        </div>
-    </div>
-</div>
