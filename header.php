@@ -9,26 +9,26 @@ $upcomingActivities = $stmt->fetchAll();
     <h2><?php echo $page_title ?? 'Page'; ?></h2>
     <div class="icons-right">
         <?php if ($_SESSION['role'] == 'admin'): ?>
-        <i class="fas fa-users" onclick="showUsersModal()"></i>
+        <i class="fas fa-users" style="cursor: pointer;" onclick="showUsersModal()"></i>
         <?php endif; ?>
         <div class="bell-container">
-            <i class="fas fa-bell" onclick="showNotificationsModal()"></i>
+            <i class="fas fa-bell" style="cursor: pointer;" onclick="showNotificationsModal()"></i>
             <?php if (count($upcomingActivities) > 0): ?>
                 <span class="notification-badge"><?php echo count($upcomingActivities); ?></span>
             <?php endif; ?>
         </div>
-        <i class="fas fa-user" onclick="showUserInfoModal()"></i>
+        <i class="fas fa-user" style="cursor: pointer;" onclick="showUserInfoModal()"></i>
     </div>
 </div>
 
 
 <?php if ($_SESSION['role'] == 'admin'): ?>
-<div id="usersModal">
+<div id="usersModal" class="modal-overlay">
     <div class="modal-box large">
         <div class="modal-header">
             <h2>System Users</h2>
             <div class="header-actions">
-                <button class="close-btn" id="closeUsersModal">&times;</button>
+                <button class="close-btn" onclick="closeUsersModal()">&times;</button>
             </div>
         </div>
         <div class="modal-content">
@@ -40,11 +40,11 @@ $upcomingActivities = $stmt->fetchAll();
 </div>
 <?php endif; ?>
 
-<div id="userInfoModal">
+<div id="userInfoModal" class="modal-overlay">
     <div class="modal-box">
         <div class="modal-header">
             <h2>User Information</h2>
-            <button class="close-btn" id="closeUserInfoModal">&times;</button>
+            <button class="close-btn" onclick="closeUserInfoModal()">&times;</button>
         </div>
         <div class="modal-content">
             <p><strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['name']); ?></p>
@@ -54,11 +54,11 @@ $upcomingActivities = $stmt->fetchAll();
     </div>
 </div>
 
-<div id="notificationsModal">
+<div id="notificationsModal" class="modal-overlay">
     <div class="modal-box large">
         <div class="modal-header">
             <h2>Upcoming Activities</h2>
-            <button class="close-btn" id="closeNotificationsModal">&times;</button>
+            <button class="close-btn" onclick="closeNotificationsModal()">&times;</button>
         </div>
         <div class="modal-content">
             <?php if (empty($upcomingActivities)): ?>
@@ -85,129 +85,164 @@ $upcomingActivities = $stmt->fetchAll();
 </div>
 
 <script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Modal elements
+    const usersModal = document.getElementById('usersModal');
+    const userInfoModal = document.getElementById('userInfoModal');
+    const notificationsModal = document.getElementById('notificationsModal');
 
-const usersModal = document.getElementById('usersModal');
-const closeUsersModal = document.getElementById('closeUsersModal');
-const usersModalBox = usersModal ? usersModal.querySelector('.modal-box') : null;
-const userInfoModal = document.getElementById('userInfoModal');
-const closeUserInfoModal = document.getElementById('closeUserInfoModal');
-const userInfoModalBox = userInfoModal ? userInfoModal.querySelector('.modal-box') : null;
-const notificationsModal = document.getElementById('notificationsModal');
-const closeNotificationsModal = document.getElementById('closeNotificationsModal');
-const notificationsModalBox = notificationsModal ? notificationsModal.querySelector('.modal-box') : null;
+    // Show functions
+    window.showUsersModal = function() {
+        if (!usersModal) return;
+        fetch('get_users.php')
+            .then(response => response.json())
+            .then(users => {
+                const list = document.getElementById('usersList');
+                if (users.length === 0) {
+                    list.innerHTML = '<p>No users found.</p>';
+                } else {
+                    let html = '<table class="users-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th></tr></thead><tbody>';
+                    users.forEach(user => {
+                        const statusClass = user.status === 'active' ? 'active' : 'inactive';
+                        html += `<tr><td>${user.full_name}</td><td>${user.username}</td><td>${user.role}</td><td class="${statusClass}">${user.status}</td></tr>`;
+                    });
+                    html += '</tbody></table>';
+                    list.innerHTML = html;
+                }
+                usersModal.classList.add('active');
+            })
+            .catch(() => {
+                document.getElementById('usersList').innerHTML = '<p>Error loading users.</p>';
+                usersModal.classList.add('active');
+            });
+    };
 
-function showUsersModal() {
-    fetch('get_users.php')
-        .then(response => response.json())
-        .then(users => {
-            const list = document.getElementById('usersList');
-            if (users.length === 0) {
-                list.innerHTML = '<p>No users found.</p>';
-            } else {
-                let html = '<table class="users-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th></tr></thead><tbody>';
-                users.forEach(user => {
-                    const statusClass = user.status === 'active' ? 'active' : 'inactive';
-                    html += `<tr><td>${user.full_name}</td><td>${user.username}</td><td>${user.role}</td><td class="${statusClass}">${user.status}</td></tr>`;
-                });
-                html += '</tbody></table>';
-                list.innerHTML = html;
+    window.showUserInfoModal = function() {
+        if (userInfoModal) {
+            userInfoModal.classList.add('active');
+        }
+    };
+
+    window.showNotificationsModal = function() {
+        if (notificationsModal) {
+            notificationsModal.classList.add('active');
+        }
+    };
+
+    // Close functions
+    window.closeUsersModal = function() {
+        if (usersModal) {
+            usersModal.classList.remove('active');
+        }
+    };
+
+    window.closeUserInfoModal = function() {
+        if (userInfoModal) {
+            userInfoModal.classList.remove('active');
+        }
+    };
+
+    window.closeNotificationsModal = function() {
+        if (notificationsModal) {
+            notificationsModal.classList.remove('active');
+        }
+    };
+
+    // Close on background click
+    if (usersModal) {
+        usersModal.addEventListener('click', function(e) {
+            if (e.target === usersModal) {
+                usersModal.classList.remove('active');
             }
-            usersModal.classList.add('active');
-        })
-        .catch(() => {
-            document.getElementById('usersList').innerHTML = '<p>Error loading users.</p>';
-            usersModal.classList.add('active');
         });
-}
+    }
 
+    if (userInfoModal) {
+        userInfoModal.addEventListener('click', function(e) {
+            if (e.target === userInfoModal) {
+                userInfoModal.classList.remove('active');
+            }
+        });
+    }
 
-if (addUserBtn) {
-    addUserBtn.addEventListener('click', () => {
-        addUserModal.classList.add('active');
-    });
-}
+    if (notificationsModal) {
+        notificationsModal.addEventListener('click', function(e) {
+            if (e.target === notificationsModal) {
+                notificationsModal.classList.remove('active');
+            }
+        });
+    }
 
-if (closeAddUserModal) {
-    closeAddUserModal.addEventListener('click', () => {
-        addUserModal.classList.remove('active');
-    });
-}
-
-if (addUserModal) {
-    addUserModal.addEventListener('click', (e) => {
-        if (e.target === addUserModal) {
-            addUserModal.classList.remove('active');
+    // Close on Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            if (usersModal) usersModal.classList.remove('active');
+            if (userInfoModal) userInfoModal.classList.remove('active');
+            if (notificationsModal) notificationsModal.classList.remove('active');
         }
     });
-}
 
-if (cancelAddUser) {
-    cancelAddUser.addEventListener('click', () => {
-        addUserModal.classList.remove('active');
-        userForm.reset();
-    });
-}
-
-if (userForm) {
-    userForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const formData = new FormData(userForm);
-        fetch('add_user.php', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                alert('User added successfully!');
-                userForm.reset();
-                addUserModal.classList.remove('active');
-                showUsersModal();
-                alert('Error: ' + data.message);
+    // Handle addUserBtn if it exists
+    if (typeof addUserBtn !== 'undefined' && addUserBtn) {
+        addUserBtn.addEventListener('click', () => {
+            if (typeof addUserModal !== 'undefined') {
+                addUserModal.classList.add('active');
             }
-        })
-        .catch(() => {
-            alert('An error occurred while adding the user.');
         });
-    });
-}
+    }
 
-function showUserInfoModal() {
-    userInfoModal.classList.add('active');
-}
+    if (typeof closeAddUserModal !== 'undefined' && closeAddUserModal) {
+        closeAddUserModal.addEventListener('click', () => {
+            if (typeof addUserModal !== 'undefined') {
+                addUserModal.classList.remove('active');
+            }
+        });
+    }
 
-function showNotificationsModal() {
-    notificationsModal.classList.add('active');
-}
+    if (typeof addUserModal !== 'undefined' && addUserModal) {
+        addUserModal.addEventListener('click', (e) => {
+            if (e.target === addUserModal) {
+                addUserModal.classList.remove('active');
+            }
+        });
+    }
 
-closeUsersModal.addEventListener('click', () => {
-    usersModal.classList.remove('active');
-});
+    if (typeof cancelAddUser !== 'undefined' && cancelAddUser) {
+        cancelAddUser.addEventListener('click', () => {
+            if (typeof addUserModal !== 'undefined' && typeof userForm !== 'undefined') {
+                addUserModal.classList.remove('active');
+                userForm.reset();
+            }
+        });
+    }
 
-usersModal.addEventListener('click', (e) => {
-    if (usersModalBox && !usersModalBox.contains(e.target)) {
-        usersModal.classList.remove('active');
+    if (typeof userForm !== 'undefined' && userForm) {
+        userForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const formData = new FormData(userForm);
+            fetch('add_user.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('User added successfully!');
+                    userForm.reset();
+                    if (typeof addUserModal !== 'undefined') {
+                        addUserModal.classList.remove('active');
+                    }
+                    if (typeof showUsersModal === 'function') {
+                        showUsersModal();
+                    }
+                } else {
+                    alert('Error: ' + data.message);
+                }
+            })
+            .catch(() => {
+                alert('An error occurred while adding the user.');
+            });
+        });
     }
 });
-
-closeUserInfoModal.addEventListener('click', () => {
-    userInfoModal.classList.remove('active');
-});
-
-userInfoModal.addEventListener('click', (e) => {
-    if (userInfoModalBox && !userInfoModalBox.contains(e.target)) {
-        userInfoModal.classList.remove('active');
-    }
-});
-
-closeNotificationsModal.addEventListener('click', () => {
-    notificationsModal.classList.remove('active');
-});
-
-notificationsModal.addEventListener('click', (e) => {
-    if (notificationsModalBox && !notificationsModalBox.contains(e.target)) {
-        notificationsModal.classList.remove('active');
-    }
-});
-
 </script>
