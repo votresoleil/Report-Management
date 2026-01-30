@@ -88,10 +88,13 @@ $upcomingActivities = $stmt->fetchAll();
 
 const usersModal = document.getElementById('usersModal');
 const closeUsersModal = document.getElementById('closeUsersModal');
+const usersModalBox = usersModal ? usersModal.querySelector('.modal-box') : null;
 const userInfoModal = document.getElementById('userInfoModal');
 const closeUserInfoModal = document.getElementById('closeUserInfoModal');
+const userInfoModalBox = userInfoModal ? userInfoModal.querySelector('.modal-box') : null;
 const notificationsModal = document.getElementById('notificationsModal');
 const closeNotificationsModal = document.getElementById('closeNotificationsModal');
+const notificationsModalBox = notificationsModal ? notificationsModal.querySelector('.modal-box') : null;
 
 function showUsersModal() {
     fetch('get_users.php')
@@ -182,7 +185,7 @@ closeUsersModal.addEventListener('click', () => {
 });
 
 usersModal.addEventListener('click', (e) => {
-    if(e.target === usersModal){
+    if (usersModalBox && !usersModalBox.contains(e.target)) {
         usersModal.classList.remove('active');
     }
 });
@@ -192,7 +195,7 @@ closeUserInfoModal.addEventListener('click', () => {
 });
 
 userInfoModal.addEventListener('click', (e) => {
-    if(e.target === userInfoModal){
+    if (userInfoModalBox && !userInfoModalBox.contains(e.target)) {
         userInfoModal.classList.remove('active');
     }
 });
@@ -202,7 +205,7 @@ closeNotificationsModal.addEventListener('click', () => {
 });
 
 notificationsModal.addEventListener('click', (e) => {
-    if(e.target === notificationsModal){
+    if (notificationsModalBox && !notificationsModalBox.contains(e.target)) {
         notificationsModal.classList.remove('active');
     }
 });
