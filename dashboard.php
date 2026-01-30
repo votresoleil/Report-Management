@@ -74,6 +74,11 @@ if ($show_activity_modal) {
     unset($_SESSION['activity_added']);
 }
 
+$show_update_modal = isset($_SESSION['activity_updated']);
+if ($show_update_modal) {
+    unset($_SESSION['activity_updated']);
+}
+
 $calendarMonth = $_GET['month'] ?? date('m');
 $calendarYear = $_GET['year'] ?? date('Y');
 $firstDay = mktime(0,0,0,$calendarMonth,1,$calendarYear);
@@ -225,8 +230,43 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
             <form method="POST" action="add_activity.php">
                 <input type="hidden" name="start_date" id="start_date">
                 <input type="text" name="title" placeholder="Name of Activity" required>
-                <textarea name="description" placeholder="Description"></textarea>
+                <input type="text" name="regulatory_agency" placeholder="Regulatory Agency" required>
+                <textarea name="report_details" placeholder="Report Details"></textarea>
+                <input type="text" name="concern_department" placeholder="Concern Department" required>
+                <select name="deadline_date" required>
+                    <option value="">Select Deadline Frequency</option>
+                    <option value="MONTHLY">MONTHLY</option>
+                    <option value="QUARTERLY">QUARTERLY</option>
+                    <option value="SEMI-ANNUAL">SEMI-ANNUAL</option>
+                    <option value="YEARLY">YEARLY</option>
+                </select>
                 <button type="submit" class="btn-primary">Add</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div id="editActivityModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2>Edit Activity</h2>
+            <button class="close-btn" id="closeEditActivityModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <form method="POST" action="update_activity.php">
+                <input type="hidden" name="id" id="edit_id">
+                <input type="text" name="title" id="edit_title" placeholder="Name of Activity" required>
+                <input type="text" name="regulatory_agency" id="edit_regulatory_agency" placeholder="Regulatory Agency" required>
+                <textarea name="report_details" id="edit_report_details" placeholder="Report Details"></textarea>
+                <input type="text" name="concern_department" id="edit_concern_department" placeholder="Concern Department" required>
+                <select name="deadline_date" id="edit_deadline_date" required>
+                    <option value="">Select Deadline Frequency</option>
+                    <option value="MONTHLY">MONTHLY</option>
+                    <option value="QUARTERLY">QUARTERLY</option>
+                    <option value="SEMI-ANNUAL">SEMI-ANNUAL</option>
+                    <option value="YEARLY">YEARLY</option>
+                </select>
+                <button type="submit" class="btn-primary">Update</button>
             </form>
         </div>
     </div>
@@ -316,9 +356,10 @@ function selectDate(date, element) {
             const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
             const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
             const checkIcon = `<a href="update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
+            const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
             const div = document.createElement('div');
             div.className = 'activity-item';
-            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p>${act.description}</p></div>${checkIcon}`;
+            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
             list.appendChild(div);
         });
     }
@@ -329,8 +370,12 @@ const closeUploadModal = document.getElementById('closeUploadModal');
 const addActivityModal = document.getElementById('addActivityModal');
 const addActivityBtn = document.getElementById('addActivityBtn');
 const closeAddActivityModal = document.getElementById('closeAddActivityModal');
+const editActivityModal = document.getElementById('editActivityModal');
+const closeEditActivityModal = document.getElementById('closeEditActivityModal');
 const activitySuccessModal = document.getElementById('activitySuccessModal');
 const closeActivityModal = document.getElementById('closeActivityModal');
+const activityUpdateModal = document.getElementById('activityUpdateModal');
+const closeUpdateModal = document.getElementById('closeUpdateModal');
 const selectDateModal = document.getElementById('selectDateModal');
 const closeSelectDateModal = document.getElementById('closeSelectDateModal');
 
@@ -465,6 +510,29 @@ previewModal.addEventListener('click', (e) => {
         documentPreview.src = '';
         documentPreview.style.display = 'block';
         previewMessage.style.display = 'none';
+    }
+});
+
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.edit-btn')) {
+        const btn = e.target.closest('.edit-btn');
+        document.getElementById('edit_id').value = btn.dataset.id;
+        document.getElementById('edit_title').value = btn.dataset.title;
+        document.getElementById('edit_regulatory_agency').value = btn.dataset.regulatory_agency;
+        document.getElementById('edit_report_details').value = btn.dataset.report_details;
+        document.getElementById('edit_concern_department').value = btn.dataset.concern_department;
+        document.getElementById('edit_deadline_date').value = btn.dataset.deadline_date;
+        editActivityModal.classList.add('active');
+    }
+});
+
+closeEditActivityModal.addEventListener('click', () => {
+    editActivityModal.classList.remove('active');
+});
+
+editActivityModal.addEventListener('click', (e) => {
+    if(e.target === editActivityModal){
+        editActivityModal.classList.remove('active');
     }
 });
 
