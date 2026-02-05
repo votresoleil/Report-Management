@@ -1138,6 +1138,7 @@ body {
 .modal-overlay.active,
 #uploadSuccessModal.active,
 #addActivityModal.active,
+#editActivityModal.active,
 #activitySuccessModal.active,
 #selectDateModal.active,
 #uploadReportModal.active,
@@ -1202,6 +1203,7 @@ body {
 }
 
 #addActivityModal .modal-box.large,
+#editActivityModal .modal-box.large,
 #uploadReportModal .modal-box.large,
 #uploadActivityReportModal .modal-box.large,
 #previewModal .modal-box.large,
@@ -1224,7 +1226,8 @@ body {
     font-size: 18px;
 }
 
-#addActivityModal .modal-box h2 {
+#addActivityModal .modal-box h2,
+#editActivityModal .modal-box h2 {
     margin-bottom: 16px;
     font-size: 18px;
     color: #333;
@@ -1254,6 +1257,7 @@ body {
 }
 
 #addActivityModal .modal-box form,
+#editActivityModal .modal-box form,
 #uploadReportModal .modal-box form,
 #uploadFolderModal .modal-box form {
     display: flex;
@@ -1301,6 +1305,10 @@ body {
 
 #addActivityModal .modal-box input,
 #addActivityModal .modal-box textarea,
+#addActivityModal .modal-box select,
+#editActivityModal .modal-box input,
+#editActivityModal .modal-box textarea,
+#editActivityModal .modal-box select,
 #uploadReportModal .modal-box input,
 #uploadReportModal .modal-box select,
 #uploadFolderModal .modal-box input,
