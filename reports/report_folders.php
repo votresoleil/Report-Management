@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 $active_view = 'folders';
 $year = $_GET['year'] ?? null;
@@ -70,19 +70,19 @@ if ($year && $month) {
 <head>
     <meta charset="UTF-8">
     <title>Report Folders - Report Management</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link rel="icon" href="img/NEECO_banner.png">
+    <link rel="icon" href="../img/NEECO_banner.png">
 </head>
 <body>
 
 <div class="main-layout">
 
-    <?php include 'sidebar.php'; ?>
+    <?php include '../dashboard/sidebar.php'; ?>
 
     <main class="main-content">
-        <?php $page_title = 'Report Folders'; include 'header.php'; ?>
+        <?php $page_title = 'Report Folders'; include '../dashboard/header.php'; ?>
         <div class="panel-header">
             <h3>Upload Options</h3>
             <div style="display: flex; gap: 10px;">
@@ -229,7 +229,7 @@ if ($year && $month) {
             <button class="close-btn" id="closeUploadReportModal">&times;</button>
         </div>
         <div class="modal-content">
-            <form action="upload_report.php" method="POST" enctype="multipart/form-data">
+            <form action="../reports/upload_report.php" method="POST" enctype="multipart/form-data">
                 <label for="title">Report Title</label>
                 <input type="text" id="title" name="title" placeholder="Enter report title" required>
                 <label for="report">Select File</label>
@@ -335,7 +335,7 @@ document.addEventListener('click', (e) => {
 
 confirmArchive.addEventListener('click', () => {
     if (archiveId) {
-        fetch(`archive_report.php?id=${archiveId}`)
+        fetch(`../archives/archive_report.php?id=${archiveId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -373,7 +373,7 @@ archiveModal.addEventListener('click', (e) => {
 
 confirmDelete.addEventListener('click', () => {
     if (deleteId) {
-        fetch(`delete_report.php?id=${deleteId}`)
+        fetch(`../archives/delete_report.php?id=${deleteId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -418,7 +418,7 @@ let currentPage = 1;
 function loadReports(query, page = 1) {
     const year = <?= json_encode($year) ?>;
     const month = <?= json_encode($month) ?>;
-    fetch(`search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&page=${page}`)
+    fetch(`../reports/search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&page=${page}`)
         .then(response => response.json())
         .then(data => {
             reportsList.innerHTML = '';

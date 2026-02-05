@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 
 ini_set('max_execution_time', 300); 
@@ -22,13 +22,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         die("Folder title is required.");
     }
 
-   
+    
     $safeFolderTitle = preg_replace('/[^A-Za-z0-9\-_]/', '_', $folderTitle);
 
-    
+     
     $dir = "uploads/$year/$month/$safeFolderTitle/";
 
-    
+     
     if (!is_dir($dir)) {
         mkdir($dir, 0777, true); 
     }
@@ -36,19 +36,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $uploadedCount = 0;
     $errors = [];
 
-  
+   
     if (count($files['name']) == 0) {
         die("No files received. Check if webkitdirectory is supported and folder was selected.");
     }
 
-    
+     
     $stmt = $pdo->prepare("
         INSERT INTO reports
         (report_title, file_name, file_type, file_size, local_path, report_month, report_year, uploaded_by)
         VALUES (?,?,?,?,?,?,?,?)
     ");
 
-    
+     
     for ($i = 0; $i < count($files['name']); $i++) {
         $fileName = $files['name'][$i];
         $fileTmp = $files['tmp_name'][$i];
@@ -68,13 +68,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             continue;
         }
 
-        
+         
         $newName = time() . "_" . $i . "_" . basename($fileName);
         $path = $dir . $newName;
 
-        
+         
         if (move_uploaded_file($fileTmp, $path)) {
-            
+             
             $stmt->execute([
                 basename($fileName), 
                 $newName,
@@ -93,7 +93,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     if ($uploadedCount > 0) {
-      
+       
         $log = $pdo->prepare("
             INSERT INTO activity_logs (user_id, action, description)
             VALUES (?,?,?)

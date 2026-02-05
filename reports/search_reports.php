@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 $search = $_GET['search'] ?? '';
 $year = $_GET['year'] ?? null;

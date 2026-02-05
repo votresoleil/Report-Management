@@ -94,7 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show functions
     window.showUsersModal = function() {
         if (!usersModal) return;
-        fetch('get_users.php')
+        fetch('../users/get_users.php')
             .then(response => response.json())
             .then(users => {
                 const list = document.getElementById('usersList');
@@ -220,7 +220,7 @@ document.addEventListener('DOMContentLoaded', function() {
         userForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const formData = new FormData(userForm);
-            fetch('add_user.php', {
+            fetch('../users/add_user.php', {
                 method: 'POST',
                 body: formData
             })

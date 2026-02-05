@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 if ($_SESSION['role'] !== 'admin') {
     http_response_code(403);

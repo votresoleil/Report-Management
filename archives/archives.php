@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 $active_view = 'archives';
 $year = $_GET['year'] ?? null;
@@ -69,20 +69,20 @@ if ($year && $month) {
     <meta charset="UTF-8">
     <title>Archives - Report Management</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link rel="icon" href="img/NEECO_banner.png">
+    <link rel="icon" href="../img/NEECO_banner.png">
 </head>
 <body>
 
 <div class="main-layout">
 
-    <?php include 'sidebar.php'; ?>
+    <?php include '../dashboard/sidebar.php'; ?>
 
     <main class="main-content">
-        <?php $page_title = 'Archives'; include 'header.php'; ?>
+        <?php $page_title = 'Archives'; include '../dashboard/header.php'; ?>
         <div class="content-section">
              <div class="folders-container" id="yearsContainer">
              <?php foreach ($years as $y => $count): ?>
@@ -311,7 +311,7 @@ document.addEventListener('click', (e) => {
 
 confirmRestore.addEventListener('click', () => {
     if (restoreId) {
-        fetch(`restore_report.php?id=${restoreId}`)
+        fetch(`../archives/restore_report.php?id=${restoreId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
@@ -349,7 +349,7 @@ restoreModal.addEventListener('click', (e) => {
 
 confirmDelete.addEventListener('click', () => {
     if (deleteId) {
-        fetch(`delete_report.php?id=${deleteId}`)
+        fetch(`../archives/delete_report.php?id=${deleteId}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {

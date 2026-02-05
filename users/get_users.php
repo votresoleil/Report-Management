@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 $stmt = $pdo->prepare("SELECT user_id, username, full_name, role, status FROM users ORDER BY full_name");
 $stmt->execute();
