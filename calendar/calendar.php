@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 $active_view = 'calendar';
 
@@ -47,20 +47,20 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
     <meta charset="UTF-8">
     <title>Activity Calendar - Report Management</title>
 
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="../css/style.css">
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
-    <link rel="icon" href="img/NEECO_banner.png">
+    <link rel="icon" href="../img/NEECO_banner.png">
 </head>
 <body>
 
 <div class="main-layout">
 
-    <?php include 'sidebar.php'; ?>
+    <?php include '../dashboard/sidebar.php'; ?>
 
     <main class="main-content">
-        <?php $page_title = 'Activity Calendar'; include 'header.php'; ?>
+        <?php $page_title = 'Activity Calendar'; include '../dashboard/header.php'; ?>
         <div class="calendar-section">
             <div class="calendar">
                 <div class="activity-summary">
@@ -181,7 +181,7 @@ $upcomingDeadlines = array_slice($upcoming, 0, 5);
             <button class="close-btn" id="closeAddActivityModal">&times;</button>
         </div>
         <div class="modal-content">
-            <form method="POST" action="add_activity.php">
+            <form method="POST" action="../calendar/add_activity.php">
                 <input type="text" name="title" placeholder="Name of Activity" required>
                 <textarea name="description" placeholder="Description"></textarea>
                 <input type="date" name="start_date" required>

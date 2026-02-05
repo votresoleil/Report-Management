@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'Uploaded folder: ' . $folderTitle . ' (' . $uploadedCount . ' files) to ' . $year . '/' . $month
         ]);
 
-        header("Location: report_folders.php?uploaded=1");
+        header("Location: reports/report_folders.php?uploaded=1");
         exit;
     } else {
         $errorMsg = "No files were uploaded successfully.";

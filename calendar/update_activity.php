@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'];
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $log->execute([$_SESSION['user_id'], 'UPDATE_ACTIVITY', 'Updated activity ID: ' . $id]);
 
     $_SESSION['activity_updated'] = true;
-    header('Location: dashboard.php');
+    header('Location: ../dashboard/dashboard.php');
     exit;
 }
 
@@ -31,7 +31,7 @@ if ($id && $status) {
     $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
     $log->execute([$_SESSION['user_id'], 'UPDATE_ACTIVITY', 'Updated activity ID: ' . $id . ' to ' . $status]);
 
-    header('Location: dashboard.php?view=calendar');
+    header('Location: ../dashboard/dashboard.php?view=calendar');
     exit;
 }
 ?>
