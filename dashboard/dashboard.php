@@ -117,7 +117,6 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
             <div class="calendar">
             <div class="calendar-view">
                             <div class="calendar-nav">
-                                <button onclick="viewAllActivities()" class="view-all-btn"><i class="fas fa-list"></i> View All Activities</button>
                                 <button onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
                                 <select id="yearSelect" onchange="changeYear()">
                                     <?php for($y = date('Y')-5; $y <= date('Y')+5; $y++): ?>
@@ -125,6 +124,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
                                     <?php endfor; ?>
                                 </select>
                                 <button onclick="changeMonth(1)"><i class="fas fa-chevron-right"></i></button>
+                                <button onclick="viewAllActivities()" class="view-all-btn"><i class="fas fa-list"></i> View All Activities</button>
                             </div>
                             <h3><?= date('F Y', mktime(0,0,0,$calendarMonth,1,$calendarYear)) ?></h3>
                             <table class="calendar-table">
