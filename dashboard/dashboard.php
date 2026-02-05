@@ -117,6 +117,7 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
             <div class="calendar">
             <div class="calendar-view">
                             <div class="calendar-nav">
+                                <button onclick="viewAllActivities()" class="view-all-btn"><i class="fas fa-list"></i> View All Activities</button>
                                 <button onclick="changeMonth(-1)"><i class="fas fa-chevron-left"></i></button>
                                 <select id="yearSelect" onchange="changeYear()">
                                     <?php for($y = date('Y')-5; $y <= date('Y')+5; $y++): ?>
@@ -285,6 +286,18 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
         <h2>Notice</h2>
         <p>Please select a date first.</p>
         <button class="btn-primary" id="closeSelectDateModal">OK</button>
+    </div>
+</div>
+
+<div id="viewAllActivitiesModal">
+    <div class="modal-box large">
+        <div class="modal-header">
+            <h2 id="viewAllActivitiesTitle">All Activities</h2>
+            <button class="close-btn" id="closeViewAllActivitiesModal">&times;</button>
+        </div>
+        <div class="modal-content">
+            <div id="viewAllActivitiesList"></div>
+        </div>
     </div>
 </div>
 
@@ -470,6 +483,19 @@ selectDateModal.addEventListener('click', (e) => {
    }
 });
 
+const viewAllActivitiesModal = document.getElementById('viewAllActivitiesModal');
+const closeViewAllActivitiesModal = document.getElementById('closeViewAllActivitiesModal');
+
+closeViewAllActivitiesModal.addEventListener('click', () => {
+    viewAllActivitiesModal.classList.remove('active');
+});
+
+viewAllActivitiesModal.addEventListener('click', (e) => {
+   if(e.target === viewAllActivitiesModal){
+       viewAllActivitiesModal.classList.remove('active');
+   }
+});
+
 const uploadReportModal = document.getElementById('uploadReportModal');
 const uploadReportBtn = document.getElementById('uploadReportBtn');
 const closeUploadReportModal = document.getElementById('closeUploadReportModal');
@@ -604,6 +630,68 @@ function changeYear() {
     const url = new URL(window.location);
     url.searchParams.set('year', year);
     window.location.href = url.toString();
+}
+
+function viewAllActivities() {
+    const modalList = document.getElementById('viewAllActivitiesList');
+    const modalTitle = document.getElementById('viewAllActivitiesTitle');
+    
+    const monthNames = ["January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"];
+    const currentMonth = '<?= $calendarMonth ?>';
+    const currentYear = '<?= $calendarYear ?>';
+    
+    modalTitle.textContent = 'All Activities for ' + monthNames[currentMonth - 1] + ' ' + currentYear;
+    
+    // Filter activities for the current month
+    const monthActivities = activities.filter(a => {
+        const actDate = new Date(a.start_date);
+        return actDate.getMonth() + 1 === parseInt(currentMonth) && 
+               actDate.getFullYear() === parseInt(currentYear);
+    });
+    
+    if (monthActivities.length === 0) {
+        modalList.innerHTML = '<p>No activities for this month.</p>';
+        document.getElementById('viewAllActivitiesModal').classList.add('active');
+        return;
+    }
+    
+    // Sort by date
+    monthActivities.sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
+    
+    modalList.innerHTML = '';
+    
+    // Group activities by date
+    const groupedActivities = {};
+    monthActivities.forEach(act => {
+        if (!groupedActivities[act.start_date]) {
+            groupedActivities[act.start_date] = [];
+        }
+        groupedActivities[act.start_date].push(act);
+    });
+    
+    // Display grouped activities
+    Object.keys(groupedActivities).sort().forEach(date => {
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'activity-group';
+        dateDiv.innerHTML = `<h4 class="activity-group-date">${new Date(date).toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}</h4>`;
+        
+        groupedActivities[date].forEach(act => {
+            const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
+            const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
+            const checkIcon = `<a href="../calendar/update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
+            const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
+            
+            const actDiv = document.createElement('div');
+            actDiv.className = 'activity-item';
+            actDiv.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
+            dateDiv.appendChild(actDiv);
+        });
+        
+        modalList.appendChild(dateDiv);
+    });
+    
+    document.getElementById('viewAllActivitiesModal').classList.add('active');
 }
 
 const searchInput = document.getElementById('searchInput');
