@@ -17,7 +17,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $log->execute([$_SESSION['user_id'], 'UPDATE_ACTIVITY', 'Updated activity ID: ' . $id]);
 
     $_SESSION['activity_updated'] = true;
-    header('Location: dashboard.php');
+    $stmt = $pdo->prepare("SELECT start_date FROM activities WHERE id = ?");
+    $stmt->execute([$id]);
+    $activity = $stmt->fetch();
+    $activityMonth = date('m', strtotime($activity['start_date']));
+    $activityYear = date('Y', strtotime($activity['start_date']));
+    header("Location: dashboard.php?month=$activityMonth&year=$activityYear");
     exit;
 }
 
@@ -31,7 +36,12 @@ if ($id && $status) {
     $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
     $log->execute([$_SESSION['user_id'], 'UPDATE_ACTIVITY', 'Updated activity ID: ' . $id . ' to ' . $status]);
 
-    header('Location: dashboard.php?view=calendar');
+    $stmt = $pdo->prepare("SELECT start_date FROM activities WHERE id = ?");
+    $stmt->execute([$id]);
+    $activity = $stmt->fetch();
+    $activityMonth = date('m', strtotime($activity['start_date']));
+    $activityYear = date('Y', strtotime($activity['start_date']));
+    header("Location: dashboard.php?month=$activityMonth&year=$activityYear");
     exit;
 }
 ?>

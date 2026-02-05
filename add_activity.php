@@ -19,7 +19,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $_SESSION['activity_added'] = true;
     $_SESSION['selected_date'] = $_POST['start_date'];
-    header('Location: dashboard.php');
+    $activityMonth = date('m', strtotime($_POST['start_date']));
+    $activityYear = date('Y', strtotime($_POST['start_date']));
+    header("Location: dashboard.php?month=$activityMonth&year=$activityYear");
     exit;
 }
 ?>
