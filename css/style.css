@@ -846,6 +846,47 @@ body {
     align-items: center;
 }
 
+.activity-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    padding: 15px;
+    margin-top: 10px;
+    border-top: 1px solid #eee;
+}
+
+.activity-pagination .page-btn {
+    padding: 8px 16px;
+    border: 1px solid #ddd;
+    background: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.activity-pagination .page-btn:hover:not(:disabled) {
+    background: #1f8f5f;
+    color: white;
+    border-color: #1f8f5f;
+}
+
+.activity-pagination .page-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.activity-pagination .page-info {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
 /* Calendar Table */
 .calendar-table {
     width: 100%;

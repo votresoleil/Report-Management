@@ -338,32 +338,74 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
 
 <script>
 const activities = <?= json_encode($activities) ?>;
-let selectedDate = null;
+const ITEMS_PER_PAGE = 5;
+let currentActivityPage = 1;
+let currentActivityDate = null;
+
+function renderActivitiesForDate(date, page) {
+    const list = document.getElementById('activity-list');
+    const dayActivities = activities.filter(a => a.start_date === date);
+    
+    if (dayActivities.length === 0) {
+        list.innerHTML = '<p>No activities for this date.</p>';
+        return;
+    }
+    
+    const totalPages = Math.ceil(dayActivities.length / ITEMS_PER_PAGE);
+    const startIndex = (page - 1) * ITEMS_PER_PAGE;
+    const endIndex = Math.min(startIndex + ITEMS_PER_PAGE, dayActivities.length);
+    const pageActivities = dayActivities.slice(startIndex, endIndex);
+    
+    list.innerHTML = '';
+    pageActivities.forEach(act => {
+        const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
+        const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
+        const checkIcon = `<a href="update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
+        const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
+        const div = document.createElement('div');
+        div.className = 'activity-item';
+        div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
+        list.appendChild(div);
+    });
+    
+    // Add pagination controls
+    if (totalPages > 1) {
+        const paginationDiv = document.createElement('div');
+        paginationDiv.className = 'activity-pagination';
+        paginationDiv.dataset.totalPages = totalPages;
+        paginationDiv.dataset.currentPage = page;
+        paginationDiv.innerHTML = `
+            <button class="page-btn" data-page="${page - 1}" ${page === 1 ? 'disabled' : ''}><i class="fas fa-chevron-left"></i> Previous</button>
+            <span class="page-info">Page ${page} of ${totalPages}</span>
+            <button class="page-btn" data-page="${page + 1}" ${page === totalPages ? 'disabled' : ''}>Next <i class="fas fa-chevron-right"></i></button>
+        `;
+        list.appendChild(paginationDiv);
+    }
+}
 
 function selectDate(date, element) {
     document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
     element.classList.add('selected');
 
-    selectedDate = date;
+    currentActivityDate = date;
+    currentActivityPage = 1;
     document.getElementById('activity-date').textContent = 'Activities for ' + new Date(date).toDateString();
-    const list = document.getElementById('activity-list');
-    list.innerHTML = '';
-    const dayActivities = activities.filter(a => a.start_date === date);
-    if (dayActivities.length === 0) {
-        list.innerHTML = '<p>No activities for this date.</p>';
-    } else {
-        dayActivities.forEach(act => {
-            const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
-            const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
-            const checkIcon = `<a href="update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
-            const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
-            const div = document.createElement('div');
-            div.className = 'activity-item';
-            div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
-            list.appendChild(div);
-        });
-    }
+    
+    renderActivitiesForDate(date, currentActivityPage);
 }
+
+// Event delegation for pagination buttons
+document.addEventListener('click', function(e) {
+    if (e.target.closest('.activity-pagination .page-btn')) {
+        const btn = e.target.closest('.page-btn');
+        if (btn.disabled) return;
+        const newPage = parseInt(btn.dataset.page);
+        if (!isNaN(newPage) && currentActivityDate) {
+            currentActivityPage = newPage;
+            renderActivitiesForDate(currentActivityDate, newPage);
+        }
+    }
+});
 
 const uploadSuccessModal = document.getElementById('uploadSuccessModal');
 const closeUploadModal = document.getElementById('closeUploadModal');
@@ -537,7 +579,7 @@ editActivityModal.addEventListener('click', (e) => {
 });
 
 document.querySelector('.calendar-section').addEventListener('click', function(e) {
-    if (!e.target.closest('.day')) {
+    if (!e.target.closest('.day') && !e.target.closest('.activity-pagination')) {
         document.querySelectorAll('.day').forEach(td => td.classList.remove('selected'));
         selectedDate = null;
         document.getElementById('activity-date').textContent = 'Select a date';
