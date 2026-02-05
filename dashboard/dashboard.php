@@ -364,7 +364,7 @@ function renderActivitiesForDate(date, page) {
         const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
         const div = document.createElement('div');
         div.className = 'activity-item';
-        div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title} by ${act.full_name}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
+        div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
         list.appendChild(div);
     });
     
