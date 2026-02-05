@@ -1031,6 +1031,7 @@ body {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     text-align: center;
     transition: transform 0.2s;
+    cursor: pointer;
 }
 
 .folder-card:hover {
@@ -1268,7 +1269,8 @@ body {
 #usersModal,
 #userInfoModal,
 #notificationsModal,
-#uploadFolderModal {
+#uploadFolderModal,
+#createFolderModal {
     position: fixed;
     inset: 0;
     display: none;
@@ -1297,6 +1299,7 @@ body {
 #userInfoModal.active,
 #notificationsModal.active,
 #uploadFolderModal.active,
+#createFolderModal.active,
 #successModal.active,
 #successNotification.active {
     display: flex;
@@ -1338,7 +1341,8 @@ body {
 #archiveModal .modal-box,
 #restoreModal .modal-box,
 #deleteModal .modal-box,
-#userInfoModal .modal-box {
+#userInfoModal .modal-box,
+#createFolderModal .modal-box {
     background: white;
     color: black;
     border-radius: 12px;
@@ -1355,13 +1359,14 @@ body {
 #previewModal .modal-box.large,
 #usersModal .modal-box.large,
 #notificationsModal .modal-box.large,
-#uploadFolderModal .modal-box.large {
+#uploadFolderModal .modal-box.large,
+#createFolderModal .modal-box.large {
     background: white;
     color: black;
     border-radius: 12px;
     padding: 24px;
     width: 80%;
-    max-width: 800px;
+    max-width: 600px;
     text-align: left;
 }
 
@@ -1405,7 +1410,8 @@ body {
 #addActivityModal .modal-box form,
 #editActivityModal .modal-box form,
 #uploadReportModal .modal-box form,
-#uploadFolderModal .modal-box form {
+#uploadFolderModal .modal-box form,
+#createFolderModal .modal-box form {
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -1458,7 +1464,9 @@ body {
 #uploadReportModal .modal-box input,
 #uploadReportModal .modal-box select,
 #uploadFolderModal .modal-box input,
-#uploadFolderModal .modal-box select {
+#uploadFolderModal .modal-box select,
+#createFolderModal .modal-box input,
+#createFolderModal .modal-box select {
     padding: 10px;
     border: 1px solid #ddd;
     border-radius: 5px;
@@ -1682,6 +1690,13 @@ body {
 
 /* Modal Labels */
 .modal-content label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    display: block;
+    color: #333;
+}
+
+#createFolderModal .modal-content label {
     font-weight: bold;
     margin-bottom: 5px;
     display: block;

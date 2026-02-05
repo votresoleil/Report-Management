@@ -5,6 +5,7 @@ require '../config/auth.php';
 $active_view = 'folders';
 $year = $_GET['year'] ?? null;
 $month = $_GET['month'] ?? null;
+$folder = $_GET['folder'] ?? null;
 $search = $_GET['search'] ?? '';
 $page = $_GET['page'] ?? 1;
 $limit = 10;
@@ -22,7 +23,6 @@ foreach ($yearRows as $row) {
 }
 
 if ($year && !$month) {
-
     $months = [];
     for ($m = 1; $m <= 12; $m++) {
         $stmt = $pdo->prepare("SELECT COUNT(*) as count FROM reports WHERE status = 'active' AND report_year = ? AND report_month = ?");
@@ -35,34 +35,41 @@ if ($year && !$month) {
 }
 
 if ($year && $month) {
-    $stmt = $pdo->prepare("
-        SELECT r.*, u.full_name
-        FROM reports r
-        JOIN users u ON r.uploaded_by = u.user_id
-        WHERE r.status = 'active' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
-        ORDER BY r.report_id DESC
-        LIMIT ? OFFSET ?
-    ");
-    $stmt->bindParam(1, $year);
-    $stmt->bindParam(2, $month);
-    $stmt->bindParam(3, $searchParam, PDO::PARAM_STR);
-    $stmt->bindParam(4, $limit, PDO::PARAM_INT);
-    $stmt->bindParam(5, $offset, PDO::PARAM_INT);
-    $searchParam = "%$search%";
-    $stmt->execute();
-    $reports = $stmt->fetchAll();
-
+    // Get folders for this year/month
+    $basePath = "uploads/$year/$month/";
+    $folders = [];
+    if (is_dir($basePath)) {
+        $items = scandir($basePath);
+        foreach ($items as $item) {
+            if ($item != '.' && $item != '..' && is_dir($basePath . $item)) {
+                $folders[] = $item;
+            }
+        }
+    }
     
-    $countStmt = $pdo->prepare("
-        SELECT COUNT(*) as total
-        FROM reports r
-        WHERE r.status = 'active' AND r.report_year = ? AND r.report_month = ? AND r.report_title LIKE ?
-    ");
-    $countStmt->bindParam(1, $year);
-    $countStmt->bindParam(2, $month);
-    $countStmt->bindParam(3, $searchParam, PDO::PARAM_STR);
-    $countStmt->execute();
-    $total = $countStmt->fetch()['total'];
+    // Build folder path for breadcrumb
+    $folderPath = '';
+    if ($folder) {
+        $folderPath = $folder;
+    }
+    
+    // Get reports
+    $reportDir = $basePath . $folderPath;
+    $reports = [];
+    if (is_dir($reportDir)) {
+        $files = scandir($reportDir);
+        foreach ($files as $file) {
+            if ($file != '.' && $file != '..' && !is_dir($reportDir . '/' . $file)) {
+                $ext = strtolower(pathinfo($file, PATHINFO_EXTENSION));
+                $reports[] = [
+                    'file_name' => $file,
+                    'report_title' => preg_replace('/^\d+_\d+_/', '', $file), // Remove timestamp prefix
+                    'local_path' => $reportDir . '/' . $file,
+                    'file_type' => $ext
+                ];
+            }
+        }
+    }
 }
 ?>
 <!DOCTYPE html>
@@ -86,14 +93,14 @@ if ($year && $month) {
         <div class="panel-header">
             <h3>Upload Options</h3>
             <div style="display: flex; gap: 10px;">
-                <button id="uploadReportBtn" class="add-activity-btn"><i class="fas fa-upload"></i> Upload Report</button>
-                <button id="uploadFolderBtn" class="add-activity-btn"><i class="fas fa-folder-plus"></i> Upload Folder</button>
+                <button id="createFolderBtn" class="add-activity-btn"><i class="fas fa-folder-plus"></i> Create New Folder</button>
+                <button id="uploadReportBtn" class="add-activity-btn"><i class="fas fa-upload"></i> Upload Reports</button>
             </div>
         </div>
         <div class="content-section">
             <div class="folders-container" id="yearsContainer">
             <?php foreach ($years as $y => $count): ?>
-                <div class="folder-card" data-year="<?= $y ?>">
+                <div class="folder-card" onclick="showMonths(<?= $y ?>); return false;" data-year="<?= $y ?>">
                     <i class="fas fa-folder"></i>
                     <h3><?= $y ?></h3>
                     <p><?= $count ?> reports</p>
@@ -117,7 +124,16 @@ if ($year && $month) {
         <div id="monthModal" class="active">
             <div class="modal-box large">
                 <div class="modal-header">
-                    <h2>Reports for <?= $month ? date('F Y', mktime(0,0,0,$month,1,$year)) : '' ?></h2>
+                    <h2>
+                        <?php 
+                        $monthName = date('F Y', mktime(0,0,0,$month,1,$year));
+                        if ($folder) {
+                            echo $monthName . ' / ' . str_replace('/', ' / ', $folder);
+                        } else {
+                            echo $monthName;
+                        }
+                        ?>
+                    </h2>
                     <div class="search-box">
                         <i class="fas fa-search"></i>
                         <input type="text" id="searchInput" placeholder="Search reports..." value="<?= htmlspecialchars($_GET['search'] ?? '') ?>">
@@ -125,52 +141,56 @@ if ($year && $month) {
                     <button class="close-btn" id="closeMonthModal" onclick="window.location.href='?year=<?= $year ?>'">&times;</button>
                 </div>
                 <div class="modal-content">
-                    <div class="reports" id="reportsList">
-                        <?php if (empty($reports)): ?>
-                            <div class="no-reports">
-                                <i class="fas fa-file-alt"></i>
-                                <p>No reports found for this month.</p>
+                    <!-- Subfolders -->
+                    <?php if (!empty($folders)): ?>
+                    <div class="subfolders-section">
+                        <h4 style="margin-bottom: 10px;">Folders</h4>
+                        <div class="folders-container" id="subfoldersContainer">
+                            <?php foreach ($folders as $f): ?>
+                            <div class="folder-card subfolder" data-year="<?= $year ?>" data-month="<?= $month ?>" data-folder="<?= htmlspecialchars($f) ?>">
+                                <i class="fas fa-folder"></i>
+                                <h3><?= htmlspecialchars($f) ?></h3>
+                                <p>Click to view</p>
                             </div>
-                        <?php else: ?>
-                            <?php foreach ($reports as $r): ?>
-                                <div class="report-card">
-                                    <div class="report-info">
-                                        <i class="fas fa-file-alt"></i>
-                                        <span><?= htmlspecialchars($r['report_title']) ?></span>
-                                    </div>
-                                    <div class="report-actions">
-                                        <button class="view-btn" data-path="<?= htmlspecialchars($r['local_path']) ?>" data-title="<?= htmlspecialchars($r['report_title']) ?>" title="View">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                        <?php if (isAdmin()): ?>
-                                            <button class="archive-btn" data-id="<?= $r['report_id'] ?>" title="Archive">
-                                                <i class="fas fa-file-archive"></i>
-                                            </button>
-                                            <button class="delete-btn danger" data-id="<?= $r['report_id'] ?>" title="Delete">
-                                                <i class="fas fa-trash"></i>
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
                             <?php endforeach; ?>
-                        <?php endif; ?>
-                    </div>
-                    <?php if ($total > 10): ?>
-                    <div class="pagination">
-                        <?php
-                        $totalPages = ceil($total / $limit);
-                        $currentPage = $page;
-                        if ($currentPage > 1): ?>
-                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage - 1 ?>" class="page-btn">&laquo; Previous</a>
-                        <?php endif; ?>
-                        <?php for ($i = 1; $i <= $totalPages; $i++): ?>
-                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $i ?>" class="page-btn <?= $i == $currentPage ? 'active' : '' ?>"><?= $i ?></a>
-                        <?php endfor; ?>
-                        <?php if ($currentPage < $totalPages): ?>
-                            <a href="?year=<?= $year ?>&month=<?= $month ?>&search=<?= urlencode($search) ?>&page=<?= $currentPage + 1 ?>" class="page-btn">Next &raquo;</a>
-                        <?php endif; ?>
+                        </div>
                     </div>
                     <?php endif; ?>
+                    
+                    <!-- Reports -->
+                    <div class="reports-section" style="<?= !empty($folders) ? 'margin-top: 20px;' : '' ?>">
+                        <h4 style="margin-bottom: 10px;">Reports</h4>
+                        <div class="reports" id="reportsList">
+                            <?php if (empty($reports)): ?>
+                                <div class="no-reports">
+                                    <i class="fas fa-file-alt"></i>
+                                    <p>No reports found for this month.</p>
+                                </div>
+                            <?php else: ?>
+                                <?php foreach ($reports as $r): ?>
+                                    <div class="report-card">
+                                        <div class="report-info">
+                                            <i class="fas fa-file-alt"></i>
+                                            <span><?= htmlspecialchars($r['report_title']) ?></span>
+                                        </div>
+                                        <div class="report-actions">
+                                            <button class="view-btn" data-path="<?= htmlspecialchars($r['local_path']) ?>" data-title="<?= htmlspecialchars($r['report_title']) ?>" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <?php if (isAdmin()): ?>
+                                                <button class="archive-btn" data-path="<?= htmlspecialchars($r['local_path']) ?>" title="Archive">
+                                                    <i class="fas fa-file-archive"></i>
+                                                </button>
+                                                <button class="delete-btn danger" data-path="<?= htmlspecialchars($r['local_path']) ?>" title="Delete">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                <?php endforeach; ?>
+                            <?php endif; ?>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -222,77 +242,116 @@ if ($year && $month) {
     </div>
 </div>
 
-<div id="uploadReportModal">
+<div id="createFolderModal">
     <div class="modal-box large">
         <div class="modal-header">
-            <h2>Upload Report</h2>
-            <button class="close-btn" id="closeUploadReportModal">&times;</button>
+            <h2>Create New Folder</h2>
+            <button class="close-btn" id="closeCreateFolderModal">&times;</button>
         </div>
         <div class="modal-content">
-            <form action="../reports/upload_report.php" method="POST" enctype="multipart/form-data">
-                <label for="title">Report Title</label>
-                <input type="text" id="title" name="title" placeholder="Enter report title" required>
-                <label for="report">Select File</label>
-                <input type="file" id="report" name="report" required>
-                <label for="month">Month</label>
-                <select id="month" name="month" required>
-                    <?php for ($m=1; $m<=12; $m++): ?>
-                        <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+            <form action="../reports/create_folder.php" method="POST" enctype="multipart/form-data" id="createFolderForm">
+                <label for="folder_title">Folder Title</label>
+                <input type="text" id="folder_title" name="title" placeholder="Enter folder title (e.g., Weekly Reports)" required>
+                <label for="folder_month">Month</label>
+                <select id="folder_month" name="month" required>
+                    <?php for ($m = 1; $m <= 12; $m++): ?>
+                        <option value="<?= str_pad($m, 2, '0', STR_PAD_LEFT) ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
                     <?php endfor; ?>
                 </select>
-                <label for="day">Day</label>
-                <select id="day" name="day" required>
-                    <?php for ($d=1; $d<=31; $d++): ?>
-                        <option value="<?= $d ?>"><?= $d ?></option>
+                <label for="folder_year">Year</label>
+                <select id="folder_year" name="year" required>
+                    <?php for ($y = date('Y') - 5; $y <= date('Y') + 1; $y++): ?>
+                        <option value="<?= $y ?>" <?= $y == date('Y') ? 'selected' : '' ?>><?= $y ?></option>
                     <?php endfor; ?>
                 </select>
-                <label for="year">Year</label>
-                <input type="number" id="year" name="year" value="<?= date('Y') ?>" required>
-                <button type="submit" class="btn-primary">Upload</button>
+                <label for="folder_path">Folder (Optional) Sub folder path</label>
+                <input type="text" id="folder_path" name="path" placeholder="e.g., Weekly Reports/Week 1">
+                <button type="submit" class="btn-primary">Create Folder</button>
             </form>
         </div>
     </div>
 </div>
 
-<div id="uploadFolderModal">
+<div id="uploadReportModal">
     <div class="modal-box large">
         <div class="modal-header">
-            <h2>Upload Folder</h2>
-            <button class="close-btn" id="closeUploadFolderModal">&times;</button>
+            <h2>Upload Reports</h2>
+            <button class="close-btn" id="closeUploadReportModal">&times;</button>
         </div>
         <div class="modal-content">
-            <div id="folderUploadForm">
-                <form action="upload_folder.php" method="POST" enctype="multipart/form-data" id="folderForm">
-                    <label for="folder_title">Folder Title</label>
-                    <input type="text" id="folder_title" name="folder_title" placeholder="Enter folder title" required>
-                    <label for="folder">Select Folder</label>
-                    <input type="file" id="folder" name="files[]" webkitdirectory multiple required>
-                    <label for="month">Month</label>
-                    <select id="folder_month" name="month" required>
-                        <?php for ($m=1; $m<=12; $m++): ?>
-                            <option value="<?= $m ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <label for="day">Day</label>
-                    <select id="folder_day" name="day" required>
-                        <?php for ($d=1; $d<=31; $d++): ?>
-                            <option value="<?= $d ?>"><?= $d ?></option>
-                        <?php endfor; ?>
-                    </select>
-                    <label for="year">Year</label>
-                    <input type="number" id="folder_year" name="year" value="<?= date('Y') ?>" required>
-                    <button type="submit" class="btn-primary">Upload Folder</button>
-                </form>
-            </div>
-            <div id="folderLoading" style="display: none; text-align: center; padding: 20px;">
-                <i class="fas fa-spinner fa-spin" style="font-size: 24px; margin-bottom: 10px;"></i>
-                <p>Uploading files... Please wait.</p>
-            </div>
+            <form action="../reports/upload_report.php" method="POST" enctype="multipart/form-data" id="uploadReportForm">
+                <label for="upload_year">Year</label>
+                <select id="upload_year" name="year" required>
+                    <?php for ($y = date('Y') - 5; $y <= date('Y') + 1; $y++): ?>
+                        <option value="<?= $y ?>" <?= $y == date('Y') ? 'selected' : '' ?>><?= $y ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="upload_month">Month</label>
+                <select id="upload_month" name="month" required>
+                    <?php for ($m = 1; $m <= 12; $m++): ?>
+                        <option value="<?= str_pad($m, 2, '0', STR_PAD_LEFT) ?>"><?= date('F', mktime(0,0,0,$m,1)) ?></option>
+                    <?php endfor; ?>
+                </select>
+                <label for="upload_folder">Folder (Optional)</label>
+                <input type="text" id="upload_folder" name="folder" placeholder="Subfolder path (e.g., Weekly Reports/Week 1)">
+                <label for="reports">Select Files</label>
+                <input type="file" id="reports" name="reports[]" multiple required>
+                <p style="font-size: 12px; color: #666; margin-top: 5px;">You can select multiple files at once</p>
+                <button type="submit" class="btn-primary">Upload Reports</button>
+            </form>
         </div>
     </div>
 </div>
 
 <script>
+// Global function to show months for a year
+function showMonths(year) {
+    console.log('Fetching months for year:', year);
+    
+    // Update selected state
+    document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
+    const yearCard = document.querySelector(`.folder-card[data-year="${year}"]`);
+    if (yearCard) {
+        yearCard.classList.add('selected');
+    }
+    
+    // Update title
+    document.getElementById('monthsTitle').textContent = `Months for ${year}`;
+    
+    // Fetch months
+    fetch(`get_months.php?year=${year}`)
+        .then(response => response.json())
+        .then(data => {
+            console.log('Months data:', data);
+            const container = document.getElementById('monthsContainer');
+            container.innerHTML = '';
+            
+            if (data.months.length === 0) {
+                container.innerHTML = '<div class="no-reports" style="grid-column: 1 / -1;"><i class="fas fa-folder"></i><p>No months found for this year.</p></div>';
+            } else {
+                data.months.forEach(m => {
+                    const monthName = new Date(year, m.month - 1, 1).toLocaleString('default', { month: 'long' });
+                    const card = document.createElement('div');
+                    card.className = 'folder-card';
+                    card.innerHTML = `
+                        <a href="?year=${year}&month=${m.month}">
+                            <i class="fas fa-folder"></i>
+                            <h3>${monthName}</h3>
+                            <p>${m.count || 0} items</p>
+                        </a>
+                    `;
+                    container.appendChild(card);
+                });
+            }
+            
+            document.getElementById('monthsPanel').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error fetching months:', error);
+        });
+}
+
+document.addEventListener('DOMContentLoaded', function() {
 const archiveModal = document.getElementById('archiveModal');
 const confirmArchive = document.getElementById('confirmArchive');
 const cancelArchive = document.getElementById('cancelArchive');
@@ -302,9 +361,8 @@ const cancelDelete = document.getElementById('cancelDelete');
 const successNotification = document.getElementById('successNotification');
 const successMessage = document.getElementById('successMessage');
 
-let archiveId = null;
-let deleteId = null;
-
+let archivePath = null;
+let deletePath = null;
 
 const monthModal = document.getElementById('monthModal');
 if (monthModal) {
@@ -323,33 +381,28 @@ if (monthModal) {
 document.addEventListener('click', (e) => {
     if (e.target.closest('.archive-btn')) {
         const btn = e.target.closest('.archive-btn');
-        archiveId = btn.dataset.id;
+        archivePath = btn.dataset.path;
         archiveModal.classList.add('active');
     }
     if (e.target.closest('.delete-btn')) {
         const btn = e.target.closest('.delete-btn');
-        deleteId = btn.dataset.id;
+        deletePath = btn.dataset.path;
         deleteModal.classList.add('active');
     }
 });
 
 confirmArchive.addEventListener('click', () => {
-    if (archiveId) {
-        fetch(`../archives/archive_report.php?id=${archiveId}`)
+    if (archivePath) {
+        fetch(`../archives/archive_report.php?path=${encodeURIComponent(archivePath)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
                     successNotification.classList.add('active');
                     archiveModal.classList.remove('active');
-                    // Remove the archived report card
-                    const card = document.querySelector(`.archive-btn[data-id="${archiveId}"]`).closest('.report-card');
-                    if (card) card.remove();
-                    // Reload reports
-                    loadReports('', 1);
-                    // Auto-hide after 3 seconds
                     setTimeout(() => {
                         successNotification.classList.remove('active');
+                        location.reload();
                     }, 3000);
                 } else {
                     alert(data.message);
@@ -361,33 +414,28 @@ confirmArchive.addEventListener('click', () => {
 
 cancelArchive.addEventListener('click', () => {
     archiveModal.classList.remove('active');
-    archiveId = null;
+    archivePath = null;
 });
 
 archiveModal.addEventListener('click', (e) => {
     if (e.target === archiveModal) {
         archiveModal.classList.remove('active');
-        archiveId = null;
+        archivePath = null;
     }
 });
 
 confirmDelete.addEventListener('click', () => {
-    if (deleteId) {
-        fetch(`../archives/delete_report.php?id=${deleteId}`)
+    if (deletePath) {
+        fetch(`../archives/delete_report.php?path=${encodeURIComponent(deletePath)}`)
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
                     successMessage.textContent = data.message;
                     successNotification.classList.add('active');
                     deleteModal.classList.remove('active');
-                    // Remove the deleted report card
-                    const card = document.querySelector(`.delete-btn[data-id="${deleteId}"]`).closest('.report-card');
-                    if (card) card.remove();
-                    // Reload reports
-                    loadReports('', 1);
-                    // Auto-hide after 3 seconds
                     setTimeout(() => {
                         successNotification.classList.remove('active');
+                        location.reload();
                     }, 3000);
                 } else {
                     alert(data.message);
@@ -399,148 +447,89 @@ confirmDelete.addEventListener('click', () => {
 
 cancelDelete.addEventListener('click', () => {
     deleteModal.classList.remove('active');
-    deleteId = null;
+    deletePath = null;
 });
 
 deleteModal.addEventListener('click', (e) => {
     if (e.target === deleteModal) {
         deleteModal.classList.remove('active');
-        deleteId = null;
+        deletePath = null;
     }
 });
 
-
-const searchInput = document.getElementById('searchInput');
-const reportsList = document.getElementById('reportsList');
-const isAdmin = <?= isAdmin() ? 'true' : 'false' ?>;
-let currentPage = 1;
-
-function loadReports(query, page = 1) {
-    const year = <?= json_encode($year) ?>;
-    const month = <?= json_encode($month) ?>;
-    fetch(`../reports/search_reports.php?search=${encodeURIComponent(query)}&year=${year}&month=${month}&page=${page}`)
-        .then(response => response.json())
-        .then(data => {
-            reportsList.innerHTML = '';
-            if (data.reports.length === 0) {
-                reportsList.innerHTML = '<div class="no-reports"><i class="fas fa-file-alt"></i><p>No reports found for this month.</p></div>';
-            } else {
-                data.reports.forEach(r => {
-                    let actions = `
-                        <button class="view-btn" data-path="${r.local_path}" data-title="${r.report_title}" title="View">
-                            <i class="fas fa-eye"></i>
-                        </button>
-                    `;
-                    if (isAdmin) {
-                        actions += `
-                            <button class="archive-btn" data-id="${r.report_id}" title="Archive">
-                                <i class="fas fa-archive"></i>
-                            </button>
-                            <button class="delete-btn danger" data-id="${r.report_id}" title="Delete">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        `;
-                    }
-                    const card = `
-                        <div class="report-card">
-                            <div class="report-info">
-                                <i class="fas fa-file-alt"></i>
-                                <span>${r.report_title}</span>
-                            </div>
-                            <div class="report-actions">
-                                ${actions}
-                            </div>
-                        </div>
-                    `;
-                    reportsList.innerHTML += card;
-                });
-            }
-            // Add pagination if total > 10
-            const paginationContainer = document.querySelector('.pagination');
-            if (paginationContainer) {
-                paginationContainer.remove();
-            }
-            if (data.total > 10) {
-                const totalPages = Math.ceil(data.total / 10);
-                let paginationHTML = '<div class="pagination">';
-                if (page > 1) {
-                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page - 1})">&laquo; Previous</button>`;
-                }
-                for (let i = 1; i <= totalPages; i++) {
-                    paginationHTML += `<button class="page-btn ${i === page ? 'active' : ''}" onclick="loadReports('${query}', ${i})">${i}</button>`;
-                }
-                if (page < totalPages) {
-                    paginationHTML += `<button class="page-btn" onclick="loadReports('${query}', ${page + 1})">Next &raquo;</button>`;
-                }
-                paginationHTML += '</div>';
-                reportsList.insertAdjacentHTML('afterend', paginationHTML);
-            }
-        });
-}
-
-if (searchInput && reportsList) {
-    searchInput.addEventListener('input', function() {
-        const query = this.value;
-        currentPage = 1;
-        loadReports(query, currentPage);
-    });
-}
-
-let selectedYear = null;
-
-document.querySelectorAll('.folder-card[data-year]').forEach(card => {
-    card.addEventListener('click', function() {
-        const year = this.dataset.year;
-        if (selectedYear === year) {
-            // Close
-            selectedYear = null;
-            document.getElementById('monthsPanel').style.display = 'none';
-            document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
-        } else {
-            // Open
-            selectedYear = year;
-            document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
-            this.classList.add('selected');
-            document.getElementById('monthsTitle').textContent = `Months for ${year}`;
-            fetchMonths(year);
+// Global function to toggle months for a year
+function toggleMonths(year) {
+    const monthsPanel = document.getElementById('monthsPanel');
+    const yearCard = document.querySelector(`.folder-card[data-year="${year}"]`);
+    
+    // Check if this year is already selected
+    const isSelected = yearCard && yearCard.classList.contains('selected');
+    
+    // Remove selected class from all year cards
+    document.querySelectorAll('.folder-card[data-year]').forEach(c => c.classList.remove('selected'));
+    
+    if (isSelected) {
+        // Hide months panel if already selected
+        monthsPanel.style.display = 'none';
+    } else {
+        // Show months for this year
+        if (yearCard) {
+            yearCard.classList.add('selected');
         }
-    });
-});
-
-function fetchMonths(year) {
-    // Fetch months for the year
-    fetch(`get_months.php?year=${year}`)
-        .then(response => response.json())
-        .then(data => {
-            const container = document.getElementById('monthsContainer');
-            container.innerHTML = '';
-            for (const [m, count] of Object.entries(data)) {
-                const card = document.createElement('div');
-                card.className = 'folder-card';
-                card.innerHTML = `
-                    <a href="?year=${year}&month=${m}">
-                        <i class="fas fa-folder"></i>
-                        <h3>${new Date(year, m-1, 1).toLocaleString('default', { month: 'long' })}</h3>
-                        <p>${count} reports</p>
-                    </a>
-                `;
-                container.appendChild(card);
-            }
-            document.getElementById('monthsPanel').style.display = 'block';
-        });
+        
+        // Update title
+        document.getElementById('monthsTitle').textContent = `Months for ${year}`;
+        
+        // Fetch months from the server (scans filesystem)
+        fetch(`get_months.php?year=${year}`)
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('monthsContainer');
+                container.innerHTML = '';
+                
+                if (data.months.length === 0) {
+                    container.innerHTML = '<div class="no-reports" style="grid-column: 1 / -1;"><i class="fas fa-folder"></i><p>No months found for this year.</p></div>';
+                } else {
+                    data.months.forEach(m => {
+                        const monthName = new Date(year, m.month - 1, 1).toLocaleString('default', { month: 'long' });
+                        const card = document.createElement('div');
+                        card.className = 'folder-card';
+                        card.innerHTML = `
+                            <a href="?year=${year}&month=${m.month}">
+                                <i class="fas fa-folder"></i>
+                                <h3>${monthName}</h3>
+                                <p>${m.count || 0} items</p>
+                            </a>
+                        `;
+                        container.appendChild(card);
+                    });
+                }
+                
+                monthsPanel.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error fetching months:', error);
+            });
+    }
 }
 
 // Check if year is in URL and open panel
 const urlParams = new URLSearchParams(window.location.search);
 const yearParam = urlParams.get('year');
 if (yearParam) {
-    selectedYear = yearParam;
-    const yearCard = document.querySelector(`.folder-card[data-year="${yearParam}"]`);
-    if (yearCard) {
-        yearCard.classList.add('selected');
-        fetchMonths(yearParam);
-    }
+    toggleMonths(yearParam);
 }
+
+// Handle subfolder clicks
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.subfolder')) {
+        const btn = e.target.closest('.subfolder');
+        const year = btn.dataset.year;
+        const month = btn.dataset.month;
+        const folder = btn.dataset.folder;
+        window.location.href = `?year=${year}&month=${month}&folder=${encodeURIComponent(folder)}`;
+    }
+});
 
 const previewModal = document.getElementById('previewModal');
 const closePreviewModal = document.getElementById('closePreviewModal');
@@ -611,52 +600,56 @@ previewModal.addEventListener('click', (e) => {
     }
 });
 
+// Create Folder Modal
+const createFolderModal = document.getElementById('createFolderModal');
+const createFolderBtn = document.getElementById('createFolderBtn');
+const closeCreateFolderModal = document.getElementById('closeCreateFolderModal');
+
+if (createFolderBtn && createFolderModal) {
+    createFolderBtn.addEventListener('click', () => {
+        createFolderModal.classList.add('active');
+    });
+}
+
+if (closeCreateFolderModal && createFolderModal) {
+    closeCreateFolderModal.addEventListener('click', () => {
+        createFolderModal.classList.remove('active');
+    });
+}
+
+if (createFolderModal) {
+    createFolderModal.addEventListener('click', (e) => {
+        if(e.target === createFolderModal){
+            createFolderModal.classList.remove('active');
+        }
+    });
+}
+
+// Upload Report Modal
 const uploadReportModal = document.getElementById('uploadReportModal');
 const uploadReportBtn = document.getElementById('uploadReportBtn');
 const closeUploadReportModal = document.getElementById('closeUploadReportModal');
 
-uploadReportBtn.addEventListener('click', () => {
-    uploadReportModal.classList.add('active');
-});
+if (uploadReportBtn && uploadReportModal) {
+    uploadReportBtn.addEventListener('click', () => {
+        uploadReportModal.classList.add('active');
+    });
+}
 
-closeUploadReportModal.addEventListener('click', () => {
-    uploadReportModal.classList.remove('active');
-});
-
-uploadReportModal.addEventListener('click', (e) => {
-    if(e.target === uploadReportModal){
+if (closeUploadReportModal && uploadReportModal) {
+    closeUploadReportModal.addEventListener('click', () => {
         uploadReportModal.classList.remove('active');
-    }
-});
+    });
+}
 
-const uploadFolderModal = document.getElementById('uploadFolderModal');
-const uploadFolderBtn = document.getElementById('uploadFolderBtn');
-const closeUploadFolderModal = document.getElementById('closeUploadFolderModal');
-const folderForm = document.getElementById('folderForm');
-const folderUploadForm = document.getElementById('folderUploadForm');
-const folderLoading = document.getElementById('folderLoading');
+if (uploadReportModal) {
+    uploadReportModal.addEventListener('click', (e) => {
+        if(e.target === uploadReportModal){
+            uploadReportModal.classList.remove('active');
+        }
+    });
+}
 
-uploadFolderBtn.addEventListener('click', () => {
-    uploadFolderModal.classList.add('active');
-});
-
-closeUploadFolderModal.addEventListener('click', () => {
-    uploadFolderModal.classList.remove('active');
-    folderUploadForm.style.display = 'block';
-    folderLoading.style.display = 'none';
-});
-
-uploadFolderModal.addEventListener('click', (e) => {
-    if(e.target === uploadFolderModal){
-        uploadFolderModal.classList.remove('active');
-        folderUploadForm.style.display = 'block';
-        folderLoading.style.display = 'none';
-    }
-});
-
-folderForm.addEventListener('submit', () => {
-    folderUploadForm.style.display = 'none';
-    folderLoading.style.display = 'block';
 });
 </script>
 
