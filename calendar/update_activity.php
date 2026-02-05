@@ -1,6 +1,6 @@
 <?php
-require 'config/db.php';
-require 'config/auth.php';
+require '../config/db.php';
+require '../config/auth.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $id = $_POST['id'];
@@ -22,7 +22,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $activity = $stmt->fetch();
     $activityMonth = date('m', strtotime($activity['start_date']));
     $activityYear = date('Y', strtotime($activity['start_date']));
-    header("Location: dashboard.php?month=$activityMonth&year=$activityYear");
+    header("Location: ../dashboard/dashboard.php?month=$activityMonth&year=$activityYear");
     exit;
 }
 
@@ -41,7 +41,7 @@ if ($id && $status) {
     $activity = $stmt->fetch();
     $activityMonth = date('m', strtotime($activity['start_date']));
     $activityYear = date('Y', strtotime($activity['start_date']));
-    header("Location: dashboard.php?month=$activityMonth&year=$activityYear");
+    header("Location: ../dashboard/dashboard.php?month=$activityMonth&year=$activityYear");
     exit;
 }
 ?>
