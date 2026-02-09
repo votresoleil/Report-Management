@@ -1,9 +1,11 @@
 <?php
 
-$twoDaysFromNow = date('Y-m-d', strtotime('+2 days'));
-$stmt = $pdo->prepare("SELECT a.*, u.full_name FROM activities a JOIN users u ON a.user_id = u.user_id WHERE a.start_date <= ? AND a.start_date >= ? AND a.status != 'completed' ORDER BY a.start_date");
-$stmt->execute([$twoDaysFromNow, date('Y-m-d')]);
-$upcomingActivities = $stmt->fetchAll();
+require '../config/db.php';
+
+// Get unread notification count
+$notifCountStmt = $pdo->prepare("SELECT COUNT(*) as unread_count FROM notifications WHERE user_id = ? AND is_read = 0");
+$notifCountStmt->execute([$_SESSION['user_id']]);
+$unreadCount = $notifCountStmt->fetch()['unread_count'];
 ?>
 <div class="header-section">
     <h2><?php echo $page_title ?? 'Page'; ?></h2>
@@ -13,8 +15,8 @@ $upcomingActivities = $stmt->fetchAll();
         <?php endif; ?>
         <div class="bell-container">
             <i class="fas fa-bell" style="cursor: pointer;" onclick="showNotificationsModal()"></i>
-            <?php if (count($upcomingActivities) > 0): ?>
-                <span class="notification-badge"><?php echo count($upcomingActivities); ?></span>
+            <?php if ($unreadCount > 0): ?>
+                <span class="notification-badge"><?php echo $unreadCount; ?></span>
             <?php endif; ?>
         </div>
         <i class="fas fa-user" style="cursor: pointer;" onclick="showUserInfoModal()"></i>
@@ -57,29 +59,16 @@ $upcomingActivities = $stmt->fetchAll();
 <div id="notificationsModal" class="modal-overlay">
     <div class="modal-box large">
         <div class="modal-header">
-            <h2>Upcoming Activities</h2>
-            <button class="close-btn" onclick="closeNotificationsModal()">&times;</button>
+            <h2>Notifications</h2>
+            <div class="header-actions">
+                <button class="mark-all-read" onclick="markAllNotificationsRead()">Mark all as read</button>
+                <button class="close-btn" onclick="closeNotificationsModal()">&times;</button>
+            </div>
         </div>
         <div class="modal-content">
-            <?php if (empty($upcomingActivities)): ?>
-                <p>No upcoming activities within the next 2 days.</p>
-            <?php else: ?>
-                <ul class="notifications-list">
-                    <?php foreach ($upcomingActivities as $act): ?>
-                        <?php
-                        $daysDiff = (strtotime($act['start_date']) - time()) / (60*60*24);
-                        $urgency = $daysDiff <= 1 ? 'urgent' : ($daysDiff <= 2 ? 'warning' : 'normal');
-                        ?>
-                        <li class="notification-item <?php echo $urgency; ?>">
-                            <div class="notification-content">
-                                <h4><?php echo htmlspecialchars($act['title']); ?></h4>
-                                <p><?php echo htmlspecialchars($act['description']); ?></p>
-                                <small>Due: <?php echo date('M d, Y', strtotime($act['start_date'])); ?> (<?php echo round($daysDiff, 1); ?> days)</small>
-                            </div>
-                        </li>
-                    <?php endforeach; ?>
-                </ul>
-            <?php endif; ?>
+            <div id="notificationsList" class="notifications-list-container">
+                <p>Loading notifications...</p>
+            </div>
         </div>
     </div>
 </div>
@@ -125,8 +114,122 @@ document.addEventListener('DOMContentLoaded', function() {
 
     window.showNotificationsModal = function() {
         if (notificationsModal) {
-            notificationsModal.classList.add('active');
+            fetch('../notifications/get_notifications.php')
+                .then(response => response.json())
+                .then(data => {
+                    updateNotificationBadge(data.unread_count);
+                    renderNotifications(data.notifications);
+                    notificationsModal.classList.add('active');
+                })
+                .catch(() => {
+                    document.getElementById('notificationsList').innerHTML = '<p>Error loading notifications.</p>';
+                    notificationsModal.classList.add('active');
+                });
         }
+    };
+
+    window.markAllNotificationsRead = function() {
+        fetch('../notifications/mark_read.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fetch('../notifications/get_notifications.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateNotificationBadge(data.unread_count);
+                        renderNotifications(data.notifications);
+                    });
+            }
+        });
+    };
+
+    function updateNotificationBadge(count) {
+        const badge = document.querySelector('.bell-container .notification-badge');
+        if (count > 0) {
+            if (badge) {
+                badge.textContent = count;
+            } else {
+                const bellContainer = document.querySelector('.bell-container');
+                const badgeEl = document.createElement('span');
+                badgeEl.className = 'notification-badge';
+                badgeEl.textContent = count;
+                bellContainer.appendChild(badgeEl);
+            }
+        } else if (badge) {
+            badge.remove();
+        }
+    }
+
+    function renderNotifications(notifications) {
+        const list = document.getElementById('notificationsList');
+        if (!notifications || notifications.length === 0) {
+            list.innerHTML = `
+                <div class="notifications-empty">
+                    <i class="fas fa-bell-slash"></i>
+                    <p>No notifications yet</p>
+                </div>
+            `;
+            return;
+        }
+        
+        let html = '<ul class="activity-notifications-list">';
+        notifications.forEach(notif => {
+            const timeAgo = formatTimeAgo(notif.created_at);
+            html += `
+                <li class="notification-item ${notif.is_read ? '' : 'unread'}" data-id="${notif.notification_id}" onclick="markNotificationRead(${notif.notification_id})">
+                    <div class="notification-icon">
+                        <i class="fas fa-calendar-plus"></i>
+                    </div>
+                    <div class="notification-content">
+                        <h4>${notif.title}</h4>
+                        <p>${notif.message}</p>
+                        <small>${timeAgo}</small>
+                    </div>
+                    ${notif.link ? `<a href="${notif.link}" class="notification-link" onclick="event.stopPropagation();">View</a>` : ''}
+                </li>
+            `;
+        });
+        html += '</ul>';
+        list.innerHTML = html;
+    }
+
+    function formatTimeAgo(dateString) {
+        const date = new Date(dateString);
+        const now = new Date();
+        const diff = now - date;
+        
+        const minutes = Math.floor(diff / 60000);
+        const hours = Math.floor(diff / 3600000);
+        const days = Math.floor(diff / 86400000);
+        
+        if (minutes < 1) return 'Just now';
+        if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
+        if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
+        if (days < 7) return `${days} day${days > 1 ? 's' : ''} ago`;
+        
+        return date.toLocaleDateString();
+    }
+
+    window.markNotificationRead = function(notificationId) {
+        fetch('../notifications/mark_read.php', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: `notification_id=${notificationId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                fetch('../notifications/get_notifications.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        updateNotificationBadge(data.unread_count);
+                        renderNotifications(data.notifications);
+                    });
+            }
+        });
     };
 
     // Close functions
