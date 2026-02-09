@@ -79,6 +79,12 @@ if ($show_update_modal) {
     unset($_SESSION['activity_updated']);
 }
 
+$show_error = isset($_SESSION['error']);
+$error_message = $_SESSION['error'] ?? '';
+if ($show_error) {
+    unset($_SESSION['error']);
+}
+
 $calendarMonth = $_GET['month'] ?? date('m');
 $calendarYear = $_GET['year'] ?? date('Y');
 $firstDay = mktime(0,0,0,$calendarMonth,1,$calendarYear);
@@ -254,18 +260,19 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
             <button class="close-btn" id="closeEditActivityModal">&times;</button>
         </div>
         <div class="modal-content">
-            <form method="POST" action="../update_activity.php">
+            <form method="POST" action="../calendar/update_activity.php">
                 <input type="hidden" name="id" id="edit_id">
+                <input type="date" name="start_date" id="edit_start_date" required>
                 <input type="text" name="title" id="edit_title" placeholder="Name of Activity" required>
+                <textarea name="description" id="edit_description" placeholder="Description"></textarea>
                 <input type="text" name="regulatory_agency" id="edit_regulatory_agency" placeholder="Regulatory Agency" required>
                 <textarea name="report_details" id="edit_report_details" placeholder="Report Details"></textarea>
                 <input type="text" name="concern_department" id="edit_concern_department" placeholder="Concern Department" required>
-                <select name="deadline_date" id="edit_deadline_date" required>
-                    <option value="">Select Deadline Frequency</option>
-                    <option value="MONTHLY">MONTHLY</option>
-                    <option value="QUARTERLY">QUARTERLY</option>
-                    <option value="SEMI-ANNUAL">SEMI-ANNUAL</option>
-                    <option value="YEARLY">YEARLY</option>
+                <input type="date" name="deadline_date" id="edit_deadline_date">
+                <select name="status" id="edit_status">
+                    <option value="pending">Pending</option>
+                    <option value="in-progress">In Progress</option>
+                    <option value="completed">Completed</option>
                 </select>
                 <button type="submit" class="btn-primary">Update</button>
             </form>
@@ -278,6 +285,22 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
         <h2>Success!</h2>
         <p>Activity added successfully to the calendar!</p>
         <button class="btn-primary" id="closeActivityModal">OK</button>
+    </div>
+</div>
+
+<div id="activityUpdateSuccessModal" class="<?= $show_update_modal ? 'active' : '' ?>">
+    <div class="modal-box">
+        <h2>Success!</h2>
+        <p>Activity updated successfully!</p>
+        <button class="btn-primary" id="closeUpdateSuccessModal">OK</button>
+    </div>
+</div>
+
+<div id="activityErrorModal" class="<?= $show_error ? 'active' : '' ?>">
+    <div class="modal-box">
+        <h2>Error</h2>
+        <p><?= htmlspecialchars($error_message) ?></p>
+        <button class="btn-primary" id="closeErrorModal">OK</button>
     </div>
 </div>
 
@@ -373,8 +396,8 @@ function renderActivitiesForDate(date, page) {
     pageActivities.forEach(act => {
         const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
         const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
-        const checkIcon = `<a href="../update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
-        const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
+        const checkIcon = `<a href="../calendar/update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
+        const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-description="${act.description || ''}" data-start_date="${act.start_date}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}" data-status="${act.status}"><i class="fas fa-edit"></i></a>`;
         const div = document.createElement('div');
         div.className = 'activity-item';
         div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
@@ -472,6 +495,36 @@ activitySuccessModal.addEventListener('click', (e) => {
         activitySuccessModal.classList.remove('active');
     }
 });
+
+const activityErrorModal = document.getElementById('activityErrorModal');
+const closeErrorModal = document.getElementById('closeErrorModal');
+
+if (closeErrorModal) {
+    closeErrorModal.addEventListener('click', () => {
+        activityErrorModal.classList.remove('active');
+    });
+    
+    activityErrorModal.addEventListener('click', (e) => {
+        if(e.target === activityErrorModal){
+            activityErrorModal.classList.remove('active');
+        }
+    });
+}
+
+const activityUpdateSuccessModal = document.getElementById('activityUpdateSuccessModal');
+const closeUpdateSuccessModal = document.getElementById('closeUpdateSuccessModal');
+
+if (closeUpdateSuccessModal) {
+    closeUpdateSuccessModal.addEventListener('click', () => {
+        activityUpdateSuccessModal.classList.remove('active');
+    });
+    
+    activityUpdateSuccessModal.addEventListener('click', (e) => {
+        if(e.target === activityUpdateSuccessModal){
+            activityUpdateSuccessModal.classList.remove('active');
+        }
+    });
+}
 
 closeSelectDateModal.addEventListener('click', () => {
     selectDateModal.classList.remove('active');
@@ -586,10 +639,13 @@ document.addEventListener('click', (e) => {
         const btn = e.target.closest('.edit-btn');
         document.getElementById('edit_id').value = btn.dataset.id;
         document.getElementById('edit_title').value = btn.dataset.title;
+        document.getElementById('edit_description').value = btn.dataset.description || '';
+        document.getElementById('edit_start_date').value = btn.dataset.start_date;
         document.getElementById('edit_regulatory_agency').value = btn.dataset.regulatory_agency;
         document.getElementById('edit_report_details').value = btn.dataset.report_details;
         document.getElementById('edit_concern_department').value = btn.dataset.concern_department;
         document.getElementById('edit_deadline_date').value = btn.dataset.deadline_date;
+        document.getElementById('edit_status').value = btn.dataset.status || 'pending';
         editActivityModal.classList.add('active');
     }
 });
@@ -680,7 +736,7 @@ function viewAllActivities() {
             const statusDot = act.status === 'completed' ? 'green' : act.status === 'in-progress' ? 'yellow' : 'red';
             const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
             const checkIcon = `<a href="../calendar/update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
-            const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}"><i class="fas fa-edit"></i></a>`;
+            const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-description="${act.description || ''}" data-start_date="${act.start_date}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}" data-status="${act.status}"><i class="fas fa-edit"></i></a>`;
             
             const actDiv = document.createElement('div');
             actDiv.className = 'activity-item';

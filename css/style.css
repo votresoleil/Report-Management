@@ -1429,6 +1429,8 @@ body {
 #editActivityModal,
 #viewAllActivitiesModal,
 #activitySuccessModal,
+#activityUpdateSuccessModal,
+#activityErrorModal,
 #selectDateModal,
 #uploadReportModal,
 #uploadActivityReportModal,
@@ -1458,6 +1460,8 @@ body {
 #editActivityModal.active,
 #viewAllActivitiesModal.active,
 #activitySuccessModal.active,
+#activityUpdateSuccessModal.active,
+#activityErrorModal.active,
 #selectDateModal.active,
 #uploadReportModal.active,
 #uploadActivityReportModal.active,
@@ -1522,6 +1526,62 @@ body {
     text-align: center;
 }
 
+/* Enhanced Activity Success Modal */
+#activitySuccessModal .modal-box {
+    background: linear-gradient(135deg, #1f8f5f 0%, #34c38f 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(31, 143, 95, 0.4);
+}
+
+#activitySuccessModal .modal-box h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#activitySuccessModal .modal-box h2::before {
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+#activitySuccessModal .modal-box p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#activitySuccessModal .modal-box .btn-primary {
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    background: white;
+    color: #1f8f5f;
+    transition: all 0.3s;
+}
+
+#activitySuccessModal .modal-box .btn-primary:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
 #addActivityModal .modal-box.large,
 #editActivityModal .modal-box.large,
 #viewAllActivitiesModal .modal-box.large,
@@ -1543,6 +1603,8 @@ body {
 
 #uploadSuccessModal .modal-box h2,
 #activitySuccessModal .modal-box h2,
+#activityUpdateSuccessModal .modal-box h2,
+#activityErrorModal .modal-box h2,
 #selectDateModal .modal-box h2 {
     margin-bottom: 16px;
     font-size: 18px;
@@ -1557,6 +1619,8 @@ body {
 
 #uploadSuccessModal .modal-box p,
 #activitySuccessModal .modal-box p,
+#activityUpdateSuccessModal .modal-box p,
+#activityErrorModal .modal-box p,
 #selectDateModal .modal-box p {
     margin-bottom: 24px;
 }
@@ -1576,6 +1640,144 @@ body {
 #activitySuccessModal .modal-box .btn-primary:hover,
 #selectDateModal .modal-box .btn-primary:hover {
     background: #34c38f;
+}
+
+/* Activity Update Success Modal Styling */
+#activityUpdateSuccessModal .modal-box {
+    background: linear-gradient(135deg, #1f8f5f 0%, #34c38f 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(31, 143, 95, 0.4);
+    animation: successPopIn 0.4s ease-out;
+}
+
+@keyframes successPopIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.8);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+#activityUpdateSuccessModal .modal-box h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#activityUpdateSuccessModal .modal-box h2::before {
+    content: "✓";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+#activityUpdateSuccessModal .modal-box p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#activityUpdateSuccessModal .modal-box .btn-primary {
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    background: white;
+    color: #1f8f5f;
+    transition: all 0.3s;
+}
+
+#activityUpdateSuccessModal .modal-box .btn-primary:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+/* Activity Error Modal Styling */
+#activityErrorModal .modal-box {
+    background: linear-gradient(135deg, #dc3545 0%, #ff6b7a 100%);
+    color: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(220, 53, 69, 0.4);
+    animation: errorShake 0.5s ease-out;
+}
+
+@keyframes errorShake {
+    0%, 100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    20%, 60% {
+        transform: translateX(-10px);
+    }
+    40%, 80% {
+        transform: translateX(10px);
+    }
+}
+
+#activityErrorModal .modal-box h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#activityErrorModal .modal-box h2::before {
+    content: "✕";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    font-size: 20px;
+}
+
+#activityErrorModal .modal-box p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#activityErrorModal .modal-box .btn-primary {
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    background: white;
+    color: #dc3545;
+    transition: all 0.3s;
+}
+
+#activityErrorModal .modal-box .btn-primary:hover {
+    background: #f0f0f0;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 #addActivityModal .modal-box form,
