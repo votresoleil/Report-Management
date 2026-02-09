@@ -427,6 +427,50 @@ body {
     align-items: center;
 }
 
+/* Archives Navigation */
+.archives-nav {
+    display: flex;
+    gap: 10px;
+    padding: 20px;
+    background: #f9f9f9;
+    border-bottom: 2px solid #eaf7f1;
+}
+
+.archives-nav .archive-nav-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 24px;
+    background: white;
+    color: #023020;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+.archives-nav .archive-nav-btn i {
+    font-size: 18px;
+    color: #1f8f5f;
+}
+
+.archives-nav .archive-nav-btn:hover {
+    background: #eaf7f1;
+    border-color: #1f8f5f;
+}
+
+.archives-nav .archive-nav-btn.active {
+    background: #1f8f5f;
+    color: white;
+    border-color: #1f8f5f;
+}
+
+.archives-nav .archive-nav-btn.active i {
+    color: white;
+}
+
 /* Content Section */
 .content-section {
     background: white;
@@ -854,8 +898,52 @@ body {
 
 .activity-actions {
     display: flex;
-    gap: 10px;
+    gap: 8px;
     align-items: center;
+}
+
+.activity-actions a {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    margin: 0;
+    padding: 0;
+}
+
+.activity-actions .check-btn {
+    background: #1f8f5f;
+    color: white;
+}
+
+.activity-actions .check-btn:hover {
+    background: #34c38f;
+}
+
+.activity-actions .edit-btn {
+    background: #023020;
+    color: white;
+}
+
+.activity-actions .edit-btn:hover {
+    background: #0a4a2a;
+}
+
+.activity-actions .archive-btn {
+    background: #1f8f5f;
+    color: white !important;
+}
+
+.activity-actions .archive-btn i {
+    color: white;
+}
+
+.activity-actions .archive-btn:hover {
+    background: #34c38f;
 }
 
 .activity-pagination {
@@ -1133,9 +1221,34 @@ body {
 }
 
 #viewAllActivitiesModal .activity-actions a {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-size: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 6px;
+    font-size: 14px;
+    margin: 0;
+}
+
+#viewAllActivitiesModal .activity-actions .check-btn {
+    background: #1f8f5f;
+    color: white;
+}
+
+#viewAllActivitiesModal .activity-actions .edit-btn {
+    background: #023020;
+    color: white;
+}
+
+#viewAllActivitiesModal .activity-actions .archive-btn {
+    background: #1f8f5f;
+    color: white !important;
+}
+
+#viewAllActivitiesModal .activity-actions .archive-btn i {
+    color: white;
 }
 
 /* Activity Group */
@@ -1430,6 +1543,8 @@ body {
 #viewAllActivitiesModal,
 #activitySuccessModal,
 #activityUpdateSuccessModal,
+#activityArchivedModal,
+#activityRestoredModal,
 #activityErrorModal,
 #selectDateModal,
 #uploadReportModal,
@@ -1461,6 +1576,8 @@ body {
 #viewAllActivitiesModal.active,
 #activitySuccessModal.active,
 #activityUpdateSuccessModal.active,
+#activityArchivedModal.active,
+#activityRestoredModal.active,
 #activityErrorModal.active,
 #selectDateModal.active,
 #uploadReportModal.active,
@@ -1528,13 +1645,13 @@ body {
 
 /* Enhanced Activity Success Modal */
 #activitySuccessModal .modal-box {
-    background: linear-gradient(135deg, #1f8f5f 0%, #34c38f 100%);
+    background: #023020;
     color: white;
     border-radius: 16px;
     padding: 32px 40px;
     width: 380px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(31, 143, 95, 0.4);
+    box-shadow: 0 10px 40px rgba(2, 48, 32, 0.4);
 }
 
 #activitySuccessModal .modal-box h2 {
@@ -1572,7 +1689,7 @@ body {
     font-weight: bold;
     font-size: 16px;
     background: white;
-    color: #1f8f5f;
+    color: #023020;
     transition: all 0.3s;
 }
 
@@ -1644,14 +1761,100 @@ body {
 
 /* Activity Update Success Modal Styling */
 #activityUpdateSuccessModal .modal-box {
-    background: linear-gradient(135deg, #1f8f5f 0%, #34c38f 100%);
+    background: #023020;
     color: white;
     border-radius: 16px;
     padding: 32px 40px;
     width: 380px;
     text-align: center;
-    box-shadow: 0 10px 40px rgba(31, 143, 95, 0.4);
+    box-shadow: 0 10px 40px rgba(2, 48, 32, 0.5);
     animation: successPopIn 0.4s ease-out;
+}
+
+/* Activity Archived Modal */
+#activityArchivedModal .modal-box {
+    background: #023020;
+    color: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(2, 48, 32, 0.5);
+}
+
+#activityArchivedModal .modal-box h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#activityArchivedModal .modal-box h2::before {
+    content: "📦";
+    font-size: 28px;
+}
+
+#activityArchivedModal .modal-box p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#activityArchivedModal .modal-box .btn-primary {
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    background: white;
+    color: #023020;
+    transition: all 0.3s;
+}
+
+/* Activity Restored Modal */
+#activityRestoredModal .modal-box {
+    background: #023020;
+    color: white;
+    border-radius: 16px;
+    padding: 32px 40px;
+    width: 380px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(2, 48, 32, 0.5);
+}
+
+#activityRestoredModal .modal-box h2 {
+    margin-bottom: 16px;
+    font-size: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+#activityRestoredModal .modal-box h2::before {
+    content: "↩️";
+    font-size: 28px;
+}
+
+#activityRestoredModal .modal-box p {
+    margin-bottom: 24px;
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#activityRestoredModal .modal-box .btn-primary {
+    padding: 12px 32px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 16px;
+    background: white;
+    color: #023020;
+    transition: all 0.3s;
 }
 
 @keyframes successPopIn {
@@ -1700,7 +1903,7 @@ body {
     font-weight: bold;
     font-size: 16px;
     background: white;
-    color: #1f8f5f;
+    color: #023020;
     transition: all 0.3s;
 }
 

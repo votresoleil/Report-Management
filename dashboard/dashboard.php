@@ -79,6 +79,16 @@ if ($show_update_modal) {
     unset($_SESSION['activity_updated']);
 }
 
+$show_archived_modal = isset($_SESSION['activity_archived']);
+if ($show_archived_modal) {
+    unset($_SESSION['activity_archived']);
+}
+
+$show_restored_modal = isset($_SESSION['activity_restored']);
+if ($show_restored_modal) {
+    unset($_SESSION['activity_restored']);
+}
+
 $show_error = isset($_SESSION['error']);
 $error_message = $_SESSION['error'] ?? '';
 if ($show_error) {
@@ -296,6 +306,22 @@ for ($day = 1; $day <= $daysInMonth; $day++) {
     </div>
 </div>
 
+<div id="activityArchivedModal" class="<?= $show_archived_modal ? 'active' : '' ?>">
+    <div class="modal-box">
+        <h2>Success!</h2>
+        <p>Activity archived successfully!</p>
+        <button class="btn-primary" id="closeArchivedModal">OK</button>
+    </div>
+</div>
+
+<div id="activityRestoredModal" class="<?= $show_restored_modal ? 'active' : '' ?>">
+    <div class="modal-box">
+        <h2>Success!</h2>
+        <p>Activity restored successfully!</p>
+        <button class="btn-primary" id="closeRestoredModal">OK</button>
+    </div>
+</div>
+
 <div id="activityErrorModal" class="<?= $show_error ? 'active' : '' ?>">
     <div class="modal-box">
         <h2>Error</h2>
@@ -398,9 +424,10 @@ function renderActivitiesForDate(date, page) {
         const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
         const checkIcon = `<a href="../calendar/update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
         const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-description="${act.description || ''}" data-start_date="${act.start_date}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}" data-status="${act.status}"><i class="fas fa-edit"></i></a>`;
+        const archiveIcon = `<a href="../calendar/archive_activity.php?id=${act.id}" class="archive-btn" title="Archive" onclick="return confirm('Are you sure you want to archive this activity?');"><i class="fas fa-archive"></i></a>`;
         const div = document.createElement('div');
         div.className = 'activity-item';
-        div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
+        div.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}${archiveIcon}</div>`;
         list.appendChild(div);
     });
     
@@ -522,6 +549,36 @@ if (closeUpdateSuccessModal) {
     activityUpdateSuccessModal.addEventListener('click', (e) => {
         if(e.target === activityUpdateSuccessModal){
             activityUpdateSuccessModal.classList.remove('active');
+        }
+    });
+}
+
+const activityArchivedModal = document.getElementById('activityArchivedModal');
+const closeArchivedModal = document.getElementById('closeArchivedModal');
+
+if (closeArchivedModal) {
+    closeArchivedModal.addEventListener('click', () => {
+        activityArchivedModal.classList.remove('active');
+    });
+    
+    activityArchivedModal.addEventListener('click', (e) => {
+        if(e.target === activityArchivedModal){
+            activityArchivedModal.classList.remove('active');
+        }
+    });
+}
+
+const activityRestoredModal = document.getElementById('activityRestoredModal');
+const closeRestoredModal = document.getElementById('closeRestoredModal');
+
+if (closeRestoredModal) {
+    closeRestoredModal.addEventListener('click', () => {
+        activityRestoredModal.classList.remove('active');
+    });
+    
+    activityRestoredModal.addEventListener('click', (e) => {
+        if(e.target === activityRestoredModal){
+            activityRestoredModal.classList.remove('active');
         }
     });
 }
@@ -737,10 +794,11 @@ function viewAllActivities() {
             const newStatus = act.status === 'completed' ? 'in-progress' : 'completed';
             const checkIcon = `<a href="../calendar/update_activity.php?id=${act.id}&status=${newStatus}" class="check-btn ${act.status === 'completed' ? 'completed' : ''}"><i class="fas fa-check"></i></a>`;
             const editIcon = `<a href="#" class="edit-btn" data-id="${act.id}" data-title="${act.title}" data-description="${act.description || ''}" data-start_date="${act.start_date}" data-regulatory_agency="${act.regulatory_agency}" data-report_details="${act.report_details}" data-concern_department="${act.concern_department}" data-deadline_date="${act.deadline_date}" data-status="${act.status}"><i class="fas fa-edit"></i></a>`;
+            const archiveIcon = `<a href="../calendar/archive_activity.php?id=${act.id}" class="archive-btn" title="Archive" onclick="return confirm('Are you sure you want to archive this activity?');"><i class="fas fa-archive"></i></a>`;
             
             const actDiv = document.createElement('div');
             actDiv.className = 'activity-item';
-            actDiv.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}</div>`;
+            actDiv.innerHTML = `<div class="activity-content"><span class="status-dot ${statusDot}"></span><h4>${act.title}</h4><p><strong>Regulatory Agency:</strong> ${act.regulatory_agency}</p><p><strong>Report Details:</strong> ${act.report_details}</p><p><strong>Concern Department:</strong> ${act.concern_department}</p><p><strong>Deadline:</strong> ${act.deadline_date}</p></div><div class="activity-actions">${checkIcon}${editIcon}${archiveIcon}</div>`;
             dateDiv.appendChild(actDiv);
         });
         

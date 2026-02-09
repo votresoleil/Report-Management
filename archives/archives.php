@@ -83,6 +83,14 @@ if ($year && $month) {
 
     <main class="main-content">
         <?php $page_title = 'Archives'; include '../dashboard/header.php'; ?>
+        <div class="archives-nav">
+            <a href="?view=activities" class="archive-nav-btn <?= ($_GET['view'] ?? 'reports') === 'activities' ? 'active' : '' ?>">
+                <i class="fas fa-calendar-alt"></i> Activities
+            </a>
+            <a href="?view=reports" class="archive-nav-btn <?= ($_GET['view'] ?? '') === 'reports' ? 'active' : '' ?>">
+                <i class="fas fa-file-alt"></i> Reports
+            </a>
+        </div>
         <div class="content-section">
              <div class="folders-container" id="yearsContainer">
              <?php foreach ($years as $y => $count): ?>

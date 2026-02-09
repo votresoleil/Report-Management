@@ -2,16 +2,19 @@
 require '../config/db.php';
 require '../config/auth.php';
 
-header('Content-Type: application/json');
+$id = $_GET['id'] ?? null;
 
-$id = $_GET['id'];
+if ($id) {
+    $log = $pdo->prepare("INSERT INTO activity_logs (user_id, action, description) VALUES (?, ?, ?)");
+    $log->execute([$_SESSION['user_id'], 'DELETE_ACTIVITY', 'Deleted activity ID: ' . $id]);
 
-$stmt = $pdo->prepare("DELETE FROM activity_logs WHERE log_id = ?");
-$result = $stmt->execute([$id]);
+    $stmt = $pdo->prepare("DELETE FROM activities WHERE id = ?");
+    $stmt->execute([$id]);
 
-if ($result) {
-    echo json_encode(['success' => true, 'message' => 'Activity log deleted successfully.']);
+    $_SESSION['activity_deleted'] = true;
+    header("Location: ../dashboard/dashboard.php");
+    exit;
 } else {
-    echo json_encode(['success' => false, 'message' => 'Failed to delete activity log.']);
+    header("Location: ../dashboard/dashboard.php");
+    exit;
 }
-exit;
